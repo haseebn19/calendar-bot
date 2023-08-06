@@ -1,4 +1,4 @@
-# ------------ LIBRARIES -----------
+# ------------ LIBRARIES -----------*
 from lib import *
 from views import *
 from datahandler import *
