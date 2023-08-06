@@ -1,9 +1,9 @@
-# ------------ LIBRARIES -----------*
+# ------------ LIBRARIES -----------)
 from lib import *
 from views import *
 from datahandler import *
 
-# ------------ ENVIRONMENT VARIABLES ------------_
+# ------------ ENVIRONMENT VARIABLES ------------
 # Load environment variables from .env file
 dotenv.load_dotenv()
 
@@ -22,7 +22,7 @@ def load_env_vars(var_list: list):
 # Load encryption key and Discord token from environment variables
 ENCRYPTION_KEY, TOKEN = load_env_vars(["ENCRYPTION_KEY", "DISCORD_TOKEN"])
 
-# ------------ BOT VARIABLES ------------s
+# ------------ BOT VARIABLES ------------se
 intents = discord.Intents.default()
 bot = commands.Bot(intents=intents)
 user_data_handler = UserDataHandler(ENCRYPTION_KEY, events_folder="events")
