@@ -1,0 +1,4 @@
+py-cord
+pytz
+python-dotenv
+cryptography
