@@ -34,7 +34,7 @@ async def on_ready():
     print(f"Logged in as {bot.user}")
 
 
-# ------------ TIMEZONES GROUP COMMANDS ------------
+# ------------ TIMEZONES GROUP COMMANDS --------
 timezone = bot.create_group(name="timezone")
 
 
@@ -74,7 +74,7 @@ async def list_timezones(ctx: commands.Context):
     await ctx.edit(embed=view.create_embed(), view=view)
 
 
-# ------------ CALENDAR GROUP COMMANDS ------------
+# ------------ CALENDAR GROUP COMMANDS 
 calendar = bot.create_group(name="calendar")
 
 
@@ -208,5 +208,5 @@ async def wipe(ctx: commands.Context):
         await ctx.send(content="Operation cancelled.")
 
 
-# ------------ START BOT ------------
+# ------------ START BOT 
 bot.run(TOKEN)
