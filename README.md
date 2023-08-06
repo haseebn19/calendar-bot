@@ -1,6 +1,6 @@
 # Calendar Bot
 
-The Calendar Bot is a personal project designed to enhance event management and organization among Discord server members. By allowing users to manage their events and timezones directly within Discord, it simplifies the process of checking availability and planning events. Whether it's for appointments, meetings, or anything else, the Calendar Bot ensures that everyone is on the same page. Not to be confused with discord's event system, this is for the organization of personal events
+The Calendar Bot is a personal project designed to enhance event management and organization among Discord server members. By allowing users to manage their events and timezones directly within Discord, it simplifies the process of checking availability and planning events. Whether it's for appointments, meetings, or anything else, the Calendar Bot ensures that everyone is on the same page. Not to be confused with discord's event system, this is for the organization of personal events.
 
 ## Features
 
