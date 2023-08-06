@@ -11,4 +11,4 @@ import pathlib
 # INSTALLED LIBRARIES
 import pytz
 import dotenv
-import cryptography
+import cryptography.fernet
