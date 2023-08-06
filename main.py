@@ -1,9 +1,9 @@
-# ------------ LIBRARIES -----------+
+# ------------ LIBRARIES ------asdg-----+
 from lib import *
 from views import *
 from datahandler import *
 
-# ------------ ENVIRONMENT VARIABLES ----------
+# ------------ ENVIRONMENT VARIABLES -----sadgsd-----
 # Load environment variables from .env file
 dotenv.load_dotenv()
 
@@ -22,7 +22,7 @@ def load_env_vars(var_list: list):
 # Load encryption key and Discord token from environment variables
 ENCRYPTION_KEY, TOKEN = load_env_vars(["ENCRYPTION_KEY", "DISCORD_TOKEN"])
 
-# ------------ BOT VARIABLES ------------s
+# ------------ BOT VARIABLES ---asdgg---------s
 intents = discord.Intents.default()
 bot = commands.Bot(intents=intents)
 user_data_handler = UserDataHandler(ENCRYPTION_KEY, events_folder="events")
@@ -34,7 +34,7 @@ async def on_ready():
     print(f"Logged in as {bot.user}")
 
 
-# ------------ TIMEZONES GROUP COMMANDS ------------
+# ------------ TIMEZONES GROUP COMMANDS ---asdgg---------
 timezone = bot.create_group(name="timezone")
 
 
@@ -74,7 +74,7 @@ async def list_timezones(ctx: commands.Context):
     await ctx.edit(embed=view.create_embed(), view=view)
 
 
-# ------------ CALENDAR GROUP COMMANDS ------------
+# ------------ CALENDAR GROUP COMMANDS -----assdgaasdg-------
 calendar = bot.create_group(name="calendar")
 
 
@@ -208,5 +208,5 @@ async def wipe(ctx: commands.Context):
         await ctx.send(content="Operation cancelled.")
 
 
-# ------------ START BOT ------------
+# ------------ START BOT ------asdgsdg------
 bot.run(TOKEN)
