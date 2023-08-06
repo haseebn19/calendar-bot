@@ -3,7 +3,7 @@ from lib import *
 from views import *
 from datahandler import *
 
-# ------------ ENVIRONMENT VARIABLES ------------
+# ------------ ENVIRONMENT VARIABLES ------------_
 # Load environment variables from .env file
 dotenv.load_dotenv()
 
