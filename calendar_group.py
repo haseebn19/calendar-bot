@@ -2,12 +2,27 @@ from lib import *
 import views
 
 
+# ------------ HELPER FUNCTIONS ------------
+def get_month_number(month: int | str):
+    if isinstance(month, int):
+        return month
+    try:
+        # Try parsing full month name
+        return int(datetime.datetime.strptime(month, "%B").strftime("%m"))
+    except ValueError:
+        try:
+            # Try parsing abbreviated month name
+            return int(datetime.datetime.strptime(month, "%b").strftime("%m"))
+        except ValueError:
+            return None
+
+
 # ------------ TIMEZONES GROUP COMMANDS ------------
 def setup(bot: commands.Bot):
     calendar = bot.create_group(name="calendar")
 
+    # Send responses based on visibility setting
     async def send_response(ctx, content=None, embed=None, view=None):
-        """Utility function to send responses based on visibility setting."""
         user_id = str(ctx.author.id)
         user_data = bot.user_data_handler.load_user_data(user_id)
         visibility = user_data.get("visibility", "private")
@@ -25,7 +40,7 @@ def setup(bot: commands.Bot):
         ctx: commands.Context,
         title: str,
         year: int,
-        month: int = 1,
+        month: str = 1,
         day: int = 1,
         hour: int = 0,
         minute: int = 0,
@@ -40,19 +55,17 @@ def setup(bot: commands.Bot):
             )
             return
 
+        month = get_month_number(month)
+
         local_tz = pytz.timezone(user_timezone)
         try:
             local_datetime = local_tz.localize(
                 datetime.datetime(year, month, day, hour, minute)
             )
-        except ValueError as e:
+        except ValueError or OverflowError as error:
+            print(error)
             await ctx.edit(
-                content="The date or time provided is out of range. Please check the values and try again."
-            )
-            return
-        except OverflowError as e:
-            await ctx.edit(
-                content="The values provided are too large. Please enter valid date and time values."
+                content="The date or time provided is invalid. Please check the values and try again."
             )
             return
 
@@ -93,6 +106,10 @@ def setup(bot: commands.Bot):
             await ctx.edit(content="This user's calendar is private.")
             return
 
+        if "events" not in user_data or not user_data["events"]:
+            await ctx.edit(content="No events found.")
+            return
+
         events = user_data["events"]
         events.sort(key=lambda x: x["time"])
 
@@ -123,7 +140,7 @@ def setup(bot: commands.Bot):
             event_name = events[event_index]["name"]
             events.pop(event_index)
             bot.user_data_handler.save_user_data(user_id, user_data)
-            await send_response(ctx, content=f'Event "{event_name}" removed.')
+            await send_response(ctx, content=f'Event "**{event_name}**" removed.')
         else:
             await ctx.edit(content="Event not found.")
 
