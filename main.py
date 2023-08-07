@@ -1,8 +1,7 @@
 # ------------ LIBRARIES ------------
 from lib import *
-import views
-import datahandler
-import timezone_group
+from views import *
+from datahandler import *
 
 # ------------ ENVIRONMENT VARIABLES ------------
 # Load environment variables from .env file
@@ -26,7 +25,7 @@ ENCRYPTION_KEY, TOKEN = load_env_vars(["ENCRYPTION_KEY", "DISCORD_TOKEN"])
 # ------------ BOT VARIABLES ------------
 intents = discord.Intents.default()
 bot = commands.Bot(intents=intents)
-user_data_handler = datahandler.UserDataHandler(ENCRYPTION_KEY, events_folder="events")
+user_data_handler = UserDataHandler(ENCRYPTION_KEY, events_folder="events")
 
 
 # Event triggered when the bot is ready
@@ -36,7 +35,44 @@ async def on_ready():
 
 
 # ------------ TIMEZONES GROUP COMMANDS ------------
-timezone_group.setup()
+timezone = bot.create_group(name="timezone")
+
+
+# Command to set user's timezone
+@timezone.command(name="set", description="Set your timezone")
+async def set_timezone(ctx: commands.Context, timezone_name: str):
+    await ctx.defer()
+    if timezone_name not in pytz.all_timezones_set:
+        await ctx.edit(
+            content="Invalid timezone. Please use `/timezone list` to see available timezones."
+        )
+        return
+    user_data_handler.set_user_timezone(str(ctx.author.id), timezone_name)
+    await ctx.edit(content=f"Your timezone has been set to {timezone_name}.")
+
+
+# Command to list all available timezones
+@timezone.command(name="list", description="List all available timezones")
+async def list_timezones(ctx: commands.Context):
+    await ctx.defer()
+    # Create a list of all timezones with their current UTC offset
+    timezone_list = [
+        (tz, datetime.datetime.now(pytz.timezone(tz)).strftime("%z"))
+        for tz in pytz.all_timezones_set
+    ]
+    # Convert the UTC offset to minutes and sort the list by the offset
+    timezone_list.sort(
+        key=lambda x: int(x[1][:3]) * 60 + int(x[1][3:5])
+        if x[1][0] == "+"
+        else -int(x[1][1:3]) * 60 - int(x[1][3:5])
+    )
+    # Split the list into chunks of 10
+    timezone_chunks = [
+        timezone_list[i : i + 10] for i in range(0, len(timezone_list), 10)
+    ]
+    view = TimezoneView(timezone_chunks, ctx)
+    await ctx.edit(embed=view.create_embed(), view=view)
+
 
 # ------------ CALENDAR GROUP COMMANDS ------------
 calendar = bot.create_group(name="calendar")
@@ -115,7 +151,7 @@ async def eventlist(ctx: commands.Context, member: discord.Member = None):
     # Split the list into chunks of 10
     event_chunks = [events[i : i + 10] for i in range(0, len(events), 10)]
 
-    view = views.EventListView(event_chunks, ctx)
+    view = EventListView(event_chunks, ctx)
     await ctx.edit(embed=view.create_embed(), view=view)
 
 
@@ -156,7 +192,7 @@ async def wipe(ctx: commands.Context):
         await ctx.edit(content="No events found.")
         return
 
-    confirm_response = views.Confirm(user_id=ctx.author.id, timeout=15)
+    confirm_response = Confirm(user_id=ctx.author.id, timeout=15)
     await ctx.edit(
         content="Are you sure you want to delete all events?", view=confirm_response
     )
