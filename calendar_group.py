@@ -6,6 +6,19 @@ import views
 def setup(bot: commands.Bot):
     calendar = bot.create_group(name="calendar")
 
+    async def send_response(ctx, content=None, embed=None, view=None):
+        """Utility function to send responses based on visibility setting."""
+        user_id = str(ctx.author.id)
+        user_data = bot.user_data_handler.load_user_data(user_id)
+        visibility = user_data.get("visibility", "private")
+
+        if visibility == "private":
+            await ctx.author.send(content=content, embed=embed, view=view)
+            if ctx.guild:  # Check if the command was invoked in a guild
+                await ctx.edit(content="I've sent you a private message!")
+        else:
+            await ctx.edit(content=content, embed=embed, view=view)
+
     # Command to add an event to the calendar
     @calendar.command(name="add", description="Add an event to the calendar")
     async def addevent(
@@ -59,17 +72,25 @@ def setup(bot: commands.Bot):
         bot.user_data_handler.save_user_data(user_id, user_data)
 
         timestamp = int(utc_time.timestamp())
-        await ctx.edit(content=f"**{title}**: <t:{timestamp}:f>, <t:{timestamp}:R>")
+        await send_response(
+            ctx, content=f"**{title}**: <t:{timestamp}:f>, <t:{timestamp}:R>"
+        )
 
     # Command to list events
     @calendar.command(name="list", description="List events")
     async def eventlist(ctx: commands.Context, member: discord.Member = None):
         await ctx.defer()
+
         user_id = str(member.id) if member else str(ctx.author.id)
         user_data = bot.user_data_handler.load_user_data(user_id)
 
-        if "events" not in user_data or not user_data["events"]:
-            await ctx.edit(content="No events found.")
+        # Check visibility if someone other than the owner is trying to view the list
+        if (
+            member
+            and user_data.get("visibility", "private") == "private"
+            and ctx.author.id != member.id
+        ):
+            await ctx.edit(content="This user's calendar is private.")
             return
 
         events = user_data["events"]
@@ -79,7 +100,7 @@ def setup(bot: commands.Bot):
         event_chunks = [events[i : i + 10] for i in range(0, len(events), 10)]
 
         view = views.EventListView(event_chunks, ctx)
-        await ctx.edit(embed=view.create_embed(), view=view)
+        await send_response(ctx, embed=view.create_embed(), view=view)
 
     # Command to remove an event by its ID
     @calendar.command(name="remove", description="Remove an event by its ID")
@@ -102,7 +123,7 @@ def setup(bot: commands.Bot):
             event_name = events[event_index]["name"]
             events.pop(event_index)
             bot.user_data_handler.save_user_data(user_id, user_data)
-            await ctx.edit(content=f'Event "{event_name}" removed.')
+            await send_response(ctx, content=f'Event "{event_name}" removed.')
         else:
             await ctx.edit(content="Event not found.")
 
@@ -128,7 +149,9 @@ def setup(bot: commands.Bot):
         elif confirm_response.value:
             user_data["events"] = []
             bot.user_data_handler.save_user_data(user_id, user_data)
-            await ctx.send(content="All events have been deleted.")
+            await ctx.send(
+                content="All events have been deleted.",
+            )
         else:
             await ctx.send(content="Operation cancelled.")
 

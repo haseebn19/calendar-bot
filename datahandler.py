@@ -3,13 +3,13 @@ from lib import *
 
 # Class to handle user data, including encryption and decryption
 class UserDataHandler:
-    def __init__(self, encryption_key, events_folder):
+    def __init__(self, encryption_key, data_folder):
         self.encryption_key = encryption_key.encode()  # Key for encryption
-        self.events_folder = pathlib.Path(events_folder)  # Folder to store event files
+        self.data_folder = pathlib.Path(data_folder)  # Folder to store event files
 
     # Method to get the file path for a specific user
     def get_user_file_path(self, user_id: str):
-        return self.events_folder / f"user_{user_id}.json"
+        return self.data_folder / f"user_{user_id}.json"
 
     # Method to load user data from an encrypted file
     def load_user_data(self, user_id: str):

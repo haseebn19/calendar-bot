@@ -25,7 +25,7 @@ ENCRYPTION_KEY, TOKEN = load_env_vars(["ENCRYPTION_KEY", "DISCORD_TOKEN"])
 intents = discord.Intents.default()
 bot = commands.Bot(intents=intents)
 bot.user_data_handler = datahandler.UserDataHandler(
-    ENCRYPTION_KEY, events_folder="events"
+    ENCRYPTION_KEY, data_folder="user_data"
 )
 
 
@@ -40,6 +40,9 @@ bot.load_extension("timezone_group")
 
 # ------------ CALENDAR GROUP COMMANDS ------------
 bot.load_extension("calendar_group")
+
+# ------------ SETTINGS GROUP COMMANDS ------------
+bot.load_extension("settings_group")
 
 # ------------ START BOT ------------
 bot.run(TOKEN)
