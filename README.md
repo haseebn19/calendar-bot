@@ -46,15 +46,21 @@ The Calendar Bot is a personal project designed to enhance event management and 
 
 ## Commands
 
-- **Timezone Commands**:
+### Timezone Commands:
   - `/timezone set <timezone_name>`: Set your timezone.
   - `/timezone list`: List all available timezones.
 
-- **Calendar Commands**:
-  - `/calendar add <title> <year> <month> <day> <hour> <minute>`: Add an event to your calendar.
+### Calendar Commands:
+  - `/calendar add <title> <year> <month> <day> <hour_minute>`: Add an event to your calendar.
   - `/calendar list`: List all your events.
   - `/calendar remove <event_id>`: Remove an event by its ID.
   - `/calendar wipe`: Delete all your events.
+
+### Settings Commands:
+  - `/settings visibility <visibility>`: Set your list visibility to public or private.
+
+### Help Commands:
+  - `/help commands`: Get a list of all commands.
 
 ## Contributing
 

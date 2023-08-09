@@ -4,7 +4,7 @@ import views
 
 # ------------ TIMEZONES GROUP COMMANDS ------------
 def setup(bot: commands.Bot):
-    timezone = bot.create_group(name="timezone")
+    timezone = bot.create_group(name="timezone", description="Manage your timezone")
 
     # Command to set user's timezone
     @timezone.command(name="set", description="Set your timezone")
