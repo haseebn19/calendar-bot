@@ -44,5 +44,8 @@ bot.load_extension("calendar_group")
 # ------------ SETTINGS GROUP COMMANDS ------------
 bot.load_extension("settings_group")
 
+# ------------ HELP GROUP COMMANDS ------------
+bot.load_extension("help_group")
+
 # ------------ START BOT ------------
 bot.run(TOKEN)

@@ -2,7 +2,7 @@ from lib import *
 
 
 def setup(bot: commands.Bot):
-    settings = bot.create_group(name="settings")
+    settings = bot.create_group(name="settings", description="Manage your settings")
 
     @settings.command(name="visibility", description="Set your visibility settings")
     async def visibility(
