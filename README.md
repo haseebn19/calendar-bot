@@ -1,5 +1,7 @@
 # Calendar Bot
 
+![Calendar Bot Logo](logo.png)
+
 The Calendar Bot is a personal project designed to enhance event management and organization among Discord server members. By allowing users to manage their events and timezones directly within Discord, it simplifies the process of checking availability and planning events. Whether it's for appointments, meetings, or anything else, the Calendar Bot ensures that everyone is on the same page. Not to be confused with discord's event system; this is for the organization of personal events.
 
 ## Features
@@ -14,7 +16,7 @@ The Calendar Bot is a personal project designed to enhance event management and 
 - Python 3.11
 - `py-cord` library
 - `dotenv` for environment variable management
-- Other dependencies as listed in the `lib` module.
+- Other dependencies as listed in the `lib` folder.
 
 ## Installation
 
@@ -46,15 +48,21 @@ The Calendar Bot is a personal project designed to enhance event management and 
 
 ## Commands
 
-- **Timezone Commands**:
+### Timezone Commands:
   - `/timezone set <timezone_name>`: Set your timezone.
   - `/timezone list`: List all available timezones.
 
-- **Calendar Commands**:
-  - `/calendar add <title> <year> <month> <day> <hour> <minute>`: Add an event to your calendar.
+### Calendar Commands:
+  - `/calendar add <title> <year> <month> <day> <hour_minute>`: Add an event to your calendar.
   - `/calendar list`: List all your events.
   - `/calendar remove <event_id>`: Remove an event by its ID.
   - `/calendar wipe`: Delete all your events.
+
+### Settings Commands:
+  - `/settings visibility <visibility>`: Set your list visibility to public or private.
+
+### Help Commands:
+  - `/help commands`: Get a list of all commands.
 
 ## Contributing
 
