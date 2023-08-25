@@ -16,6 +16,7 @@ def setup(bot: commands.Bot):
             ],
         ),
     ):
+        """Adjust visiblity settings for user data"""
         await ctx.defer()
 
         user_id = str(ctx.author.id)

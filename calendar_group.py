@@ -140,8 +140,8 @@ def parse_datetime(user_timezone, year, month, day, hour_minute):
 def setup(bot: commands.Bot):
     calendar = bot.create_group(name="calendar", description="Manage your calendar")
 
-    # Send responses based on visibility setting
     async def send_response(ctx, content=None, embed=None, view=None):
+        """Send responses based on visibility setting"""
         user_id = str(ctx.author.id)
         user_data = bot.user_data_handler.load_user_data(user_id)
         visibility = user_data.get("visibility", "private")
@@ -153,7 +153,6 @@ def setup(bot: commands.Bot):
         else:
             await ctx.edit(content=content, embed=embed, view=view)
 
-    # Command to add an event to the calendar
     @calendar.command(name="add", description="Add an event to the calendar")
     async def addevent(
         ctx: commands.Context,
@@ -163,6 +162,7 @@ def setup(bot: commands.Bot):
         day: str = None,
         hour_minute: str = None,
     ):
+        """Command to add an event to the calendar"""
         await ctx.defer()
         user_id = str(ctx.author.id)
         user_timezone = bot.user_data_handler.get_user_timezone(user_id)
@@ -213,9 +213,9 @@ def setup(bot: commands.Bot):
             ctx, content=f"**{title}**: <t:{timestamp}:f>, <t:{timestamp}:R>"
         )
 
-    # Command to list events
     @calendar.command(name="list", description="List events")
     async def eventlist(ctx: commands.Context, member: discord.Member = None):
+        """Command to list events"""
         await ctx.defer()
 
         user_id = str(member.id) if member else str(ctx.author.id)
@@ -243,9 +243,9 @@ def setup(bot: commands.Bot):
         view = views.EventListView(event_chunks, ctx)
         await send_response(ctx, embed=view.create_embed(), view=view)
 
-    # Command to remove an event by its ID
     @calendar.command(name="remove", description="Remove an event by its ID")
     async def removeevent(ctx: commands.Context, event_id: int):
+        """Command to remove an event by its ID"""
         await ctx.defer()
         user_id = str(ctx.author.id)
         user_data = bot.user_data_handler.load_user_data(user_id)
@@ -268,9 +268,9 @@ def setup(bot: commands.Bot):
         else:
             await ctx.edit(content="Event not found.")
 
-    # Command to delete all events
     @calendar.command(name="wipe", description="Delete all events")
     async def wipe(ctx: commands.Context):
+        """Command to delete all events"""
         await ctx.defer()
         user_id = str(ctx.author.id)
         user_data = bot.user_data_handler.load_user_data(user_id)
