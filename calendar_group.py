@@ -2,17 +2,6 @@ from lib import *
 import views
 
 
-# ------------ VARIABLES ------------
-# Define valid time formats using regex patterns
-valid_formats = [
-    r"^[1-9]am$",
-    r"^[1-9]pm$",
-    r"^1[0-2]am$",
-    r"^1[0-2]pm$",
-    r"^([0-9]|1[0-9]|2[0-3]):[0-5][0-9]$",
-    r"^([0-9]|1[0-9]|2[0-3])$",
-]
-
 # ------------ HELPER FUNCTIONS ------------
 import datetime
 
@@ -21,7 +10,7 @@ def parse_integer(value: str):
     """Parse a string to integer."""
     try:
         return int(value)
-    except ValueError:
+    except (ValueError, TypeError):
         return value
 
 
@@ -29,7 +18,7 @@ def get_month_number(month: str):
     """Get the month number from the input month (Aug = August = 8)."""
     month = parse_integer(month)
 
-    if isinstance(month, int):
+    if month is None or isinstance(month, int):
         return month
 
     try:
@@ -45,63 +34,104 @@ def get_month_number(month: str):
 
 def parse_hours_minutes(hour_minute: str):
     """Parse hours and minutes from a given string."""
-    if hour_minute is None:
-        return -1, -1
-
-    # Check if the input matches any of the valid formats
-    if not any(re.match(pattern, hour_minute) for pattern in valid_formats):
-        return -1, -1
-
-    # Split hours and minutes
-    if ":" in hour_minute:
-        hours, minutes = hour_minute.split(":")[:2]
-    else:
-        hours, minutes = hour_minute[:-2], "00"  # Exclude am/pm from hours
-
-    hours = int(hours)
-    minutes = int(minutes)
+    if not hour_minute:
+        return None, None
 
     # Check for am/pm
-    is_pm = hour_minute[-2:].lower() == "pm"
-    is_am = hour_minute[-2:].lower() == "am"
+    time_indicator = hour_minute[-2:].lower()
 
-    # Handle am/pm
-    if is_pm and hours != 12:
-        hours += 12
-    if is_am and hours == 12:
-        hours = 0
+    # Handle "Ham" and "Hpm" formats
+    if re.match(r"^[1-9](am|pm)$", hour_minute):
+        hours = int(hour_minute[:-2])
+        minutes = 0
 
-    # Validate hours and minutes
-    if not (0 <= hours < 24) or not (0 <= minutes < 60):
+    # Handle "HHam" and "HHpm" formats
+    elif re.match(r"^1[0-2](am|pm)$", hour_minute):
+        hours = int(hour_minute[:-2])
+        minutes = 0
+
+    # Handle "HH:MM" format
+    elif re.match(r"^([0-9]|1[0-9]|2[0-3]):[0-5][0-9]$", hour_minute):
+        hours, minutes = map(int, hour_minute.split(":"))
+
+    # Handle "HH" format
+    elif re.match(r"^([0-9]|1[0-9]|2[0-3])$", hour_minute):
+        hours = int(hour_minute)
+        minutes = 0
+
+    else:
         return -1, -1
+
+    # Adjust hours for am/pm
+    if time_indicator == "pm" and hours != 12:
+        hours += 12
+    elif time_indicator == "am" and hours == 12:
+        hours = 0
 
     return hours, minutes
 
 
-def parse_datetime(year, month, day, hour_minute):
+def get_day_number(day: str):
+    """Convert the day string to a number (0 for Monday, 1 for Tuesday, etc.)."""
+    day = day.lower()
+    for day_number, day_name in enumerate(
+        ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+    ):
+        if day_name.startswith(day):
+            return day_number
+    return -1  # Invalid day string
+
+
+def parse_day(user_timezone, year, month, day):
+    """Get the day number from the input day (Monday = Mon = DD)."""
+
+    # Check if the day is an integer or None
+    day_num = parse_integer(day)
+    if isinstance(day_num, int) or day_num is None:
+        return day_num
+
+    # Get the target day number
+    target_day_num = get_day_number(day)
+    if target_day_num == -1:
+        return -1  # Invalid day string
+
+    # Get the current day of the week
+    now = datetime.datetime.now(pytz.timezone(user_timezone))
+    current_day_num = now.weekday()
+
+    # Calculate the difference to the next occurrence
+    days_difference = (target_day_num - current_day_num + 7) % 7
+    if days_difference == 0:
+        days_difference = 7  # If the day is today, get the next week's occurrence
+
+    # Calculate the next occurrence date
+    next_occurrence = now + datetime.timedelta(days=days_difference)
+
+    # Check if the next occurrence goes past the provided month
+    if next_occurrence.month != month or next_occurrence.year != year:
+        return -1
+
+    return next_occurrence.day
+
+
+def parse_datetime(user_timezone, year, month, day, hour_minute):
     """Parse the date from the given year, month, day, and hour_minute."""
 
     now = datetime.datetime.now()
 
     # Set default values based on conditions
-    if year is None:
-        year = now.year
+    year = year or now.year
+    month = get_month_number(month) or (now.month if year == now.year else 1)
+    day = parse_day(user_timezone, year, month, day) or (
+        now.day if month == now.month and year == now.year else 1
+    )
 
-    if month is None:
-        month = now.month if year == now.year else 1
-    else:
-        month = get_month_number(month)
+    if day == -1:
+        return -1, -1, -1, -1, -1
 
-    if day is None:
-        day = now.day if month == now.month and year == now.year else 1
-
-    # Use the parse_hours_minutes function
     hour, minute = parse_hours_minutes(hour_minute)
-    if hour is None and minute is None:
-        if year is None and month is None and day is None:
-            hour, minute = 23, 59
-        else:
-            hour, minute = 0, 0
+    if hour == minute == None:
+        hour, minute = (0, 0)
 
     return year, month, day, hour, minute
 
@@ -130,7 +160,7 @@ def setup(bot: commands.Bot):
         title: str,
         year: int = None,
         month: str = None,
-        day: int = None,
+        day: str = None,
         hour_minute: str = None,
     ):
         await ctx.defer()
@@ -144,12 +174,13 @@ def setup(bot: commands.Bot):
             return
 
         # Check if all time parameters are None
-        if year is None and month is None and day is None and hour_minute is None:
+        if year == month == day == hour_minute == None:
             await ctx.edit(content="At least one time parameter is required.")
             return
 
-        year, month, day, hour, minute = parse_datetime(year, month, day, hour_minute)
-
+        year, month, day, hour, minute = parse_datetime(
+            user_timezone, year, month, day, hour_minute
+        )
         local_tz = pytz.timezone(user_timezone)
         try:
             local_datetime = local_tz.localize(

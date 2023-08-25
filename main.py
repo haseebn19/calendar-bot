@@ -7,8 +7,8 @@ import datahandler
 dotenv.load_dotenv()
 
 
-# Function to check and load required environment variables
 def load_env_vars(var_list: list):
+    """Check and load required environment variables"""
     env_vars = []
     for var in var_list:
         env_var = os.getenv(var)
