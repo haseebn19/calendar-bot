@@ -14,7 +14,7 @@ The Calendar Bot is a personal project designed to enhance event management and 
 - Python 3.11
 - `py-cord` library
 - `dotenv` for environment variable management
-- Other dependencies as listed in the `lib` module.
+- Other dependencies as listed in the `lib` folder.
 
 ## Installation
 

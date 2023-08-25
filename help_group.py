@@ -2,8 +2,7 @@ from lib import *
 
 
 def setup(bot: commands.Bot):
-    bot.remove_command("help")
-    help = bot.create_group(name="help", description="Get help")
+    help = bot.create_group(name="help")
 
     @help.command(name="commands", description="Get a list of all commands")
     async def commands_list(ctx: commands.Context):
