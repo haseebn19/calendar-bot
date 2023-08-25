@@ -6,9 +6,9 @@ import views
 def setup(bot: commands.Bot):
     timezone = bot.create_group(name="timezone", description="Manage your timezone")
 
-    # Command to set user's timezone
     @timezone.command(name="set", description="Set your timezone")
     async def set_timezone(ctx: commands.Context, timezone_name: str):
+        """Command to set user's timezone"""
         await ctx.defer()
         if timezone_name not in pytz.all_timezones_set:
             await ctx.edit(
@@ -18,9 +18,9 @@ def setup(bot: commands.Bot):
         bot.user_data_handler.set_user_timezone(str(ctx.author.id), timezone_name)
         await ctx.edit(content=f"Your timezone has been set to {timezone_name}.")
 
-    # Command to list all available timezones
     @timezone.command(name="list", description="List all available timezones")
     async def list_timezones(ctx: commands.Context):
+        """Command to list all available timezones"""
         await ctx.defer()
         # Create a list of all timezones with their current UTC offset
         timezone_list = [

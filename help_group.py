@@ -6,6 +6,7 @@ def setup(bot: commands.Bot):
 
     @help.command(name="commands", description="Get a list of all commands")
     async def commands_list(ctx: commands.Context):
+        '''Returns a list of all the available commands to the user'''
         await ctx.defer()
 
         # Retrieve all commands
