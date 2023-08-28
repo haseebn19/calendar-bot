@@ -8,8 +8,8 @@ The Calendar Bot is a personal project designed to enhance event management and 
 
 - **Personalized Timezone Management**: Users can set their own timezone, ensuring that events are set in their local time.
 - **Event Management**: Users can add, list, remove, and wipe events from their personal calendar.
-- **Event Views**: Events are displayed in a paginated manner, making it easy to navigate through large lists of events.
-- **Timezone Views**: Available timezones can be listed and viewed in a paginated manner.
+- **Events List**: Events are displayed in a paginated manner, making it easy to navigate through large lists of events.
+- **Timezones List**: Available timezones can be listed and viewed in a paginated manner.
 
 ## Prerequisites
 
