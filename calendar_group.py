@@ -147,7 +147,7 @@ def setup(bot: commands.Bot):
     async def send_response(ctx, content=None, embed=None, view=None):
         """Send responses based on visibility setting"""
         user_id = str(ctx.author.id)
-        visibility = bot.user_data_handler.get_privacy(user_id)
+        visibility = bot.user_data_handler.get_key(user_id, "privacy")
 
         if visibility == "private" and ctx.guild:
             await ctx.author.send(content=content, embed=embed, view=view)
@@ -167,7 +167,7 @@ def setup(bot: commands.Bot):
         """Command to add an event to the calendar"""
         await ctx.defer()
         user_id = str(ctx.author.id)
-        user_timezone = bot.user_data_handler.get_user_timezone(user_id)
+        user_timezone = bot.user_data_handler.get_key(user_id, "timezone")
 
         if not user_timezone:
             await ctx.edit(
@@ -218,15 +218,14 @@ def setup(bot: commands.Bot):
 
         user_id = str(member.id) if member else str(ctx.author.id)
         # Get privacy setting using the new method
-        privacy = bot.user_data_handler.get_privacy(user_id)
+        privacy = bot.user_data_handler.get_key(user_id, "privacy")
 
         # Check visibility if someone other than the owner is trying to view the list
         if member and privacy == "private" and ctx.author.id != member.id:
             await ctx.edit(content="This user's calendar is private.")
             return
 
-        # Get events using the new method
-        events = bot.user_data_handler.get_events(user_id)
+        events = bot.user_data_handler.get_key(user_id, "events")
 
         if not events:
             await ctx.edit(content="No events found.")

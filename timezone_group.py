@@ -15,9 +15,9 @@ def setup(bot: commands.Bot):
                 content="Invalid timezone. Please use `/timezone list` to see available timezones."
             )
             return
-        bot.user_data_handler.set_user_timezone(
-            user_id=str(ctx.author.id), timezone=timezone_name
-        )
+
+        user_id = str(ctx.author.id)
+        bot.user_data_handler.set_key(user_id, key="timezone", new_value=timezone_name)
         await ctx.edit(content=f"Your timezone has been set to {timezone_name}.")
 
     @timezone.command(name="list", description="List all available timezones")
