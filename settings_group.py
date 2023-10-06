@@ -18,13 +18,10 @@ def setup(bot: commands.Bot):
     ):
         """Adjust visiblity settings for user data"""
         await ctx.defer()
-
         user_id = str(ctx.author.id)
-        user_data = bot.user_data_handler.load_user_data(user_id)
 
-        # Set the visibility in the user's data
-        user_data["visibility"] = visibility
-        bot.user_data_handler.save_user_data(user_id, user_data)
+        # Call the set_privacy method from UserDataHandler
+        bot.user_data_handler.set_privacy(user_id, visibility)
 
         await ctx.edit(content=f"Your visibility setting has been set to {visibility}.")
 
