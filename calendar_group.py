@@ -132,7 +132,6 @@ def parse_datetime(user_timezone, year, month, day, hour_minute):
     if day == -1:
         return -1, -1, -1, -1, -1
 
-    
     hour, minute = parse_hours_minutes(hour_minute)
 
     if hour == minute == None:
@@ -148,8 +147,7 @@ def setup(bot: commands.Bot):
     async def send_response(ctx, content=None, embed=None, view=None):
         """Send responses based on visibility setting"""
         user_id = str(ctx.author.id)
-        user_data = bot.user_data_handler.load_user_data(user_id)
-        visibility = user_data.get("visibility", "private")
+        visibility = bot.user_data_handler.get_privacy(user_id)
 
         if visibility == "private" and ctx.guild:
             await ctx.author.send(content=content, embed=embed, view=view)
@@ -199,18 +197,14 @@ def setup(bot: commands.Bot):
 
         utc_time = local_datetime.astimezone(pytz.UTC)
 
-        user_data = bot.user_data_handler.load_user_data(user_id)
-        if "events" not in user_data:
-            user_data["events"] = []
-
-        event_id = len(user_data["events"])
+        # Create the new event
         new_event = {
-            "id": event_id,
             "name": title,
             "time": int(utc_time.timestamp()),  # Store time as Unix timestamp
         }
-        user_data["events"].append(new_event)
-        bot.user_data_handler.save_user_data(user_id, user_data)
+
+        # Call the add_event method from UserDataHandler
+        bot.user_data_handler.add_event(user_id, new_event)
 
         timestamp = int(utc_time.timestamp())
         await send_response(
@@ -223,22 +217,20 @@ def setup(bot: commands.Bot):
         await ctx.defer()
 
         user_id = str(member.id) if member else str(ctx.author.id)
-        user_data = bot.user_data_handler.load_user_data(user_id)
+        # Get privacy setting using the new method
+        privacy = bot.user_data_handler.get_privacy(user_id)
 
         # Check visibility if someone other than the owner is trying to view the list
-        if (
-            member
-            and user_data.get("visibility", "private") == "private"
-            and ctx.author.id != member.id
-        ):
+        if member and privacy == "private" and ctx.author.id != member.id:
             await ctx.edit(content="This user's calendar is private.")
             return
 
-        if "events" not in user_data or not user_data["events"]:
+        # Get events using the new method
+        events = bot.user_data_handler.get_events(user_id)
+
+        if not events:
             await ctx.edit(content="No events found.")
             return
-
-        events = user_data["events"]
         events.sort(key=lambda x: x["time"])
 
         # Split the list into chunks of 10
@@ -252,36 +244,17 @@ def setup(bot: commands.Bot):
         """Command to remove an event by its ID"""
         await ctx.defer()
         user_id = str(ctx.author.id)
-        user_data = bot.user_data_handler.load_user_data(user_id)
 
-        if "events" not in user_data or not user_data["events"]:
-            await ctx.edit(content="No events found.")
-            return
+        # Call the remove_event method from UserDataHandler
+        result_message = bot.user_data_handler.remove_event(user_id, event_id)
 
-        events = user_data["events"]
-        event_index = next(
-            (index for (index, event) in enumerate(events) if event["id"] == event_id),
-            None,
-        )
-
-        if event_index is not None:
-            event_name = events[event_index]["name"]
-            events.pop(event_index)
-            bot.user_data_handler.save_user_data(user_id, user_data)
-            await send_response(ctx, content=f'Event "**{event_name}**" removed.')
-        else:
-            await ctx.edit(content="Event not found.")
+        await send_response(ctx, content=result_message)
 
     @calendar.command(name="wipe", description="Delete all events")
     async def wipe(ctx: commands.Context):
         """Command to delete all events"""
         await ctx.defer()
         user_id = str(ctx.author.id)
-        user_data = bot.user_data_handler.load_user_data(user_id)
-
-        if "events" not in user_data or not user_data["events"]:
-            await ctx.edit(content="No events found.")
-            return
 
         confirm_response = views.Confirm(user_id=ctx.author.id, timeout=15)
         await ctx.edit(
@@ -292,11 +265,8 @@ def setup(bot: commands.Bot):
         if confirm_response.value is None:
             await ctx.send(content="You didn't respond in time, please try again.")
         elif confirm_response.value:
-            user_data["events"] = []
-            bot.user_data_handler.save_user_data(user_id, user_data)
-            await ctx.send(
-                content="All events have been deleted.",
-            )
+            result_message = bot.user_data_handler.wipe_events(user_id)
+            await ctx.send(content=result_message)
         else:
             await ctx.send(content="Operation cancelled.")
 

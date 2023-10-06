@@ -24,9 +24,7 @@ ENCRYPTION_KEY, TOKEN = load_env_vars(["ENCRYPTION_KEY", "DISCORD_TOKEN"])
 # ------------ BOT VARIABLES ------------
 intents = discord.Intents.default()
 bot = commands.Bot(intents=intents)
-bot.user_data_handler = datahandler.UserDataHandler(
-    ENCRYPTION_KEY, data_folder="user_data"
-)
+bot.user_data_handler = datahandler.UserDataHandler()
 
 
 # Event triggered when the bot is ready
