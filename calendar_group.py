@@ -40,26 +40,29 @@ def parse_hours_minutes(hour_minute: str):
     # Check for am/pm
     time_indicator = hour_minute[-2:].lower()
 
-    # Handle "Ham" and "Hpm" formats
-    if re.match(r"^[1-9](am|pm)$", hour_minute):
-        hours = int(hour_minute[:-2])
-        minutes = 0
+    # Handle "HH:MMam" and "HH:MMpm" formats
+    if re.match(r"^(?:[01]?[0-9]|2[0-3]):[0-5][0-9](am|pm)$", hour_minute):
+        hours, minutes = map(int, hour_minute[:-2].split(":"))
 
     # Handle "HHam" and "HHpm" formats
-    elif re.match(r"^1[0-2](am|pm)$", hour_minute):
+    elif re.match(r"^(?:[01]?[0-9]|2[0-3])(am|pm)$", hour_minute):
         hours = int(hour_minute[:-2])
         minutes = 0
 
     # Handle "HH:MM" format
-    elif re.match(r"^([0-9]|1[0-9]|2[0-3]):[0-5][0-9]$", hour_minute):
+    elif re.match(r"^(?:[01]?[0-9]|2[0-3]):[0-5][0-9]$", hour_minute):
         hours, minutes = map(int, hour_minute.split(":"))
 
     # Handle "HH" format
-    elif re.match(r"^([0-9]|1[0-9]|2[0-3])$", hour_minute):
+    elif re.match(r"^(?:[01]?[0-9]|2[0-3])$", hour_minute):
         hours = int(hour_minute)
         minutes = 0
 
     else:
+        return -1, -1
+
+    # Validate time indicator and hours:
+    if hours > 12 and time_indicator in ["am", "pm"]:
         return -1, -1
 
     # Adjust hours for am/pm
@@ -129,7 +132,9 @@ def parse_datetime(user_timezone, year, month, day, hour_minute):
     if day == -1:
         return -1, -1, -1, -1, -1
 
+    
     hour, minute = parse_hours_minutes(hour_minute)
+
     if hour == minute == None:
         hour, minute = (0, 0)
 
@@ -146,10 +151,9 @@ def setup(bot: commands.Bot):
         user_data = bot.user_data_handler.load_user_data(user_id)
         visibility = user_data.get("visibility", "private")
 
-        if visibility == "private":
+        if visibility == "private" and ctx.guild:
             await ctx.author.send(content=content, embed=embed, view=view)
-            if ctx.guild:  # Check if the command was invoked in a guild
-                await ctx.edit(content="I've sent you a private message!")
+            await ctx.edit(content="I've sent you a private message!")
         else:
             await ctx.edit(content=content, embed=embed, view=view)
 

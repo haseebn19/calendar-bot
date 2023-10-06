@@ -9,7 +9,7 @@ class UserDataHandler:
         self.data_folder = pathlib.Path(data_folder)  # Folder to store event files
 
         # Ensure the events folder exists, create it if not
-        self.events_folder.mkdir(parents=True, exist_ok=True)
+        self.data_folder.mkdir(parents=True, exist_ok=True)
 
     def get_user_file_path(self, user_id: str):
         """Method to get the file path for a specific user"""
