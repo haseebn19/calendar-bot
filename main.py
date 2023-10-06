@@ -6,20 +6,8 @@ import datahandler
 # Load environment variables from .env file
 dotenv.load_dotenv()
 
-
-def load_env_vars(var_list: list):
-    """Check and load required environment variables"""
-    env_vars = []
-    for var in var_list:
-        env_var = os.getenv(var)
-        if env_var is None:
-            raise EnvironmentError(f"{var} is not set in the environment variables.")
-        env_vars.append(env_var)
-    return env_vars
-
-
 # Load encryption key and Discord token from environment variables
-ENCRYPTION_KEY, TOKEN = load_env_vars(["ENCRYPTION_KEY", "DISCORD_TOKEN"])
+TOKEN = os.getenv("DISCORD_TOKEN")
 
 # ------------ BOT VARIABLES ------------
 intents = discord.Intents.default()
