@@ -61,10 +61,10 @@ class EventListView(PaginatedView):
         embed.set_footer(text=f"Page {self.page+1}/{len(self.items)}")
         # Add each event with its ID, name, and time as a field
         for event in self.items[self.page]:
-            event_time = datetime.datetime.fromtimestamp(event["time"])
+            event_time = datetime.datetime.fromtimestamp(event["timestamp"])
             timestamp = int(event_time.timestamp())
             embed.add_field(
-                name=f"`{event['id']}` - **{event['name']}**",
+                name=f"`{event['id']}` - **{event['title']}**",
                 value=f"<t:{timestamp}:f>, <t:{timestamp}:R>",
                 inline=False,
             )
