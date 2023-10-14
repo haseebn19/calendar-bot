@@ -1,3 +1,4 @@
 .env
 user_data/
 __pycache__/
+get_column.sql
