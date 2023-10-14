@@ -9,11 +9,13 @@ class UserDataHandler:
         self.data_folder = pathlib.Path("user_data")
         self.data_folder.mkdir(parents=True, exist_ok=True)
 
-    def get_user_file_path(self, user_id: str):
+    def _get_user_file_path(self, user_id: str):
+        """Method to get the path to a user's data file"""
         return self.data_folder / f"user_{user_id}.json"
 
-    def load_user_data(self, user_id: str):
-        user_file = self.get_user_file_path(user_id)
+    def _load_user_data(self, user_id: str):
+        """Method to load a user's data from a file"""
+        user_file = self._get_user_file_path(user_id)
         cipher_suite = cryptography.fernet.Fernet(self.encryption_key)
         if not user_file.is_file() or user_file.stat().st_size == 0:
             return {}
@@ -22,25 +24,28 @@ class UserDataHandler:
         decrypted_data = cipher_suite.decrypt(encrypted_data)
         return json.loads(decrypted_data)
 
-    def save_user_data(self, user_id: str, data: list):
-        user_file = self.get_user_file_path(user_id)
+    def _save_user_data(self, user_id: str, data: list):
+        """Method to save a user's data to a file"""
+        user_file = self._get_user_file_path(user_id)
         cipher_suite = cryptography.fernet.Fernet(self.encryption_key)
         encrypted_data = cipher_suite.encrypt(json.dumps(data).encode())
         with user_file.open("wb") as file:
             file.write(encrypted_data)
 
-    def get_key(self, user_id: str, key: str):
-        user_data = self.load_user_data(user_id)
-        return user_data.get(key)
+    def get_key(self, user_id: str, key: str, default=None):
+        """Method to get a key from a user's data"""
+        user_data = self._load_user_data(user_id)
+        return user_data.get(key, default)
 
     def set_key(self, user_id: str, key: str, new_value):
-        user_data = self.load_user_data(user_id)
+        """Method to set a key in a user's data"""
+        user_data = self._load_user_data(user_id)
         user_data[key] = new_value
-        self.save_user_data(user_id, user_data)
+        self._save_user_data(user_id, user_data)
 
     def add_event(self, user_id: str, new_event: dict):
         """Method to add an event to a user's data"""
-        user_data = self.load_user_data(user_id)
+        user_data = self._load_user_data(user_id)
         if "events" not in user_data:
             user_data["events"] = []
 
@@ -48,11 +53,11 @@ class UserDataHandler:
         new_event["id"] = event_id  # Assign an ID to the new event
         user_data["events"].append(new_event)
 
-        self.save_user_data(user_id, user_data)
+        self._save_user_data(user_id, user_data)
 
     def remove_event(self, user_id: str, event_id: int) -> str:
         """Method to remove an event by its ID"""
-        user_data = self.load_user_data(user_id)
+        user_data = self._load_user_data(user_id)
         if "events" not in user_data or not user_data["events"]:
             return "No events found."
 
@@ -65,17 +70,17 @@ class UserDataHandler:
         if event_index is not None:
             event_name = events[event_index]["name"]
             events.pop(event_index)
-            self.save_user_data(user_id, user_data)
+            self._save_user_data(user_id, user_data)
             return f'Event "**{event_name}**" removed.'
         else:
             return "Event not found."
 
     def wipe_events(self, user_id: str) -> str:
         """Method to wipe all events for a user"""
-        user_data = self.load_user_data(user_id)
+        user_data = self._load_user_data(user_id)
         if "events" not in user_data or not user_data["events"]:
             return "No events found."
 
         user_data["events"] = []
-        self.save_user_data(user_id, user_data)
+        self._save_user_data(user_id, user_data)
         return "All events have been deleted."
