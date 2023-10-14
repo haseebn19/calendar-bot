@@ -68,7 +68,7 @@ class UserDataHandler:
         )
 
         if event_index is not None:
-            event_name = events[event_index]["name"]
+            event_name = events[event_index]["title"]
             events.pop(event_index)
             self._save_user_data(user_id, user_data)
             return f'Event "**{event_name}**" removed.'

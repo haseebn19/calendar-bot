@@ -32,30 +32,30 @@ def get_month_number(month: str):
             return -1
 
 
-def parse_hours_minutes(hour_minute: str):
+def parse_hours_minutes(time: str):
     """Parse the hours and minutes from the input string."""
-    if not hour_minute:
+    if not time:
         return None, None
 
     # Check for am/pm
-    time_indicator = hour_minute[-2:].lower()
+    time_indicator = time[-2:].lower()
 
     # Handle "HH:MMam" and "HH:MMpm" formats
-    if re.match(r"^(?:[01]?[0-9]|2[0-3]):[0-5][0-9](am|pm)$", hour_minute):
-        hours, minutes = map(int, hour_minute[:-2].split(":"))
+    if re.match(r"^(?:[01]?[0-9]|2[0-3]):[0-5][0-9](am|pm)$", time):
+        hours, minutes = map(int, time[:-2].split(":"))
 
     # Handle "HHam" and "HHpm" formats
-    elif re.match(r"^(?:[01]?[0-9]|2[0-3])(am|pm)$", hour_minute):
-        hours = int(hour_minute[:-2])
+    elif re.match(r"^(?:[01]?[0-9]|2[0-3])(am|pm)$", time):
+        hours = int(time[:-2])
         minutes = 0
 
     # Handle "HH:MM" format
-    elif re.match(r"^(?:[01]?[0-9]|2[0-3]):[0-5][0-9]$", hour_minute):
-        hours, minutes = map(int, hour_minute.split(":"))
+    elif re.match(r"^(?:[01]?[0-9]|2[0-3]):[0-5][0-9]$", time):
+        hours, minutes = map(int, time.split(":"))
 
     # Handle "HH" format
-    elif re.match(r"^(?:[01]?[0-9]|2[0-3])$", hour_minute):
-        hours = int(hour_minute)
+    elif re.match(r"^(?:[01]?[0-9]|2[0-3])$", time):
+        hours = int(time)
         minutes = 0
 
     else:
@@ -117,8 +117,8 @@ def parse_day(user_timezone, year, month, day):
     return next_occurrence.day
 
 
-def parse_datetime(user_timezone, year, month, day, hour_minute):
-    """Parse the date from the given year, month, day, and hour_minute."""
+def parse_datetime(user_timezone, year, month, day, time):
+    """Parse the date from the given year, month, day, and time."""
 
     now = datetime.datetime.now()
 
@@ -132,7 +132,7 @@ def parse_datetime(user_timezone, year, month, day, hour_minute):
     if day == -1:
         return -1, -1, -1, -1, -1
 
-    hour, minute = parse_hours_minutes(hour_minute)
+    hour, minute = parse_hours_minutes(time)
 
     if hour == minute == None:
         hour, minute = (0, 0)
@@ -199,8 +199,8 @@ def setup(bot: commands.Bot):
 
         # Create the new event
         new_event = {
-            "name": title,
-            "time": int(utc_time.timestamp()),  # Store time as Unix timestamp
+            "title": title,
+            "timestamp": int(utc_time.timestamp()),  # Store time as Unix timestamp
         }
 
         # Call the add_event method from UserDataHandler
@@ -231,7 +231,7 @@ def setup(bot: commands.Bot):
         if not events:
             await ctx.edit(content="No events found.")
             return
-        events.sort(key=lambda x: x["time"])
+        events.sort(key=lambda x: x["timestamp"])
 
         # Split the list into chunks of 10
         event_chunks = [events[i : i + 10] for i in range(0, len(events), 10)]
