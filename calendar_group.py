@@ -6,8 +6,8 @@ import views
 import datetime
 
 
-def parse_integer(value: str):
-    """Parse a string to integer."""
+def to_int(value: str):
+    '''Convert the value to an integer if possible.'''
     try:
         return int(value)
     except (ValueError, TypeError):
@@ -15,8 +15,8 @@ def parse_integer(value: str):
 
 
 def get_month_number(month: str):
-    """Get the month number from the input month (Aug = August = 8)."""
-    month = parse_integer(month)
+    '''Convert the month string to a number (1 for January, 2 for February, etc.).'''
+    month = to_int(month)
 
     if month is None or isinstance(month, int):
         return month
@@ -33,7 +33,7 @@ def get_month_number(month: str):
 
 
 def parse_hours_minutes(hour_minute: str):
-    """Parse hours and minutes from a given string."""
+    '''Parse the hours and minutes from the input string.'''
     if not hour_minute:
         return None, None
 
@@ -75,7 +75,7 @@ def parse_hours_minutes(hour_minute: str):
 
 
 def get_day_number(day: str):
-    """Convert the day string to a number (0 for Monday, 1 for Tuesday, etc.)."""
+    '''Convert the day string to a number (0 for Monday, 1 for Tuesday, etc.).'''
     day = day.lower()
     for day_number, day_name in enumerate(
         ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
@@ -86,10 +86,10 @@ def get_day_number(day: str):
 
 
 def parse_day(user_timezone, year, month, day):
-    """Get the day number from the input day (Monday = Mon = DD)."""
+    '''Get the day number from the input day (Monday = Mon = DD).'''
 
     # Check if the day is an integer or None
-    day_num = parse_integer(day)
+    day_num = to_int(day)
     if isinstance(day_num, int) or day_num is None:
         return day_num
 
@@ -118,7 +118,7 @@ def parse_day(user_timezone, year, month, day):
 
 
 def parse_datetime(user_timezone, year, month, day, hour_minute):
-    """Parse the date from the given year, month, day, and hour_minute."""
+    '''Parse the date from the given year, month, day, and hour_minute.'''
 
     now = datetime.datetime.now()
 
@@ -145,7 +145,7 @@ def setup(bot: commands.Bot):
     calendar = bot.create_group(name="calendar", description="Manage your calendar")
 
     async def send_response(ctx, content=None, embed=None, view=None):
-        """Send responses based on visibility setting"""
+        '''Send responses based on visibility setting'''
         user_id = str(ctx.author.id)
         visibility = bot.user_data_handler.get_key(user_id, "privacy")
 
@@ -162,9 +162,9 @@ def setup(bot: commands.Bot):
         year: int = None,
         month: str = None,
         day: str = None,
-        hour_minute: str = None,
+        time: str = None,
     ):
-        """Command to add an event to the calendar"""
+        '''Command to add an event to the calendar'''
         await ctx.defer()
         user_id = str(ctx.author.id)
         user_timezone = bot.user_data_handler.get_key(user_id, "timezone")
@@ -176,12 +176,12 @@ def setup(bot: commands.Bot):
             return
 
         # Check if all time parameters are None
-        if year == month == day == hour_minute == None:
+        if year == month == day == time == None:
             await ctx.edit(content="At least one time parameter is required.")
             return
 
         year, month, day, hour, minute = parse_datetime(
-            user_timezone, year, month, day, hour_minute
+            user_timezone, year, month, day, time
         )
         local_tz = pytz.timezone(user_timezone)
         try:
@@ -213,15 +213,16 @@ def setup(bot: commands.Bot):
 
     @calendar.command(name="list", description="List events")
     async def eventlist(ctx: commands.Context, member: discord.Member = None):
-        """Command to list events"""
+        '''Command to list events'''
         await ctx.defer()
 
         user_id = str(member.id) if member else str(ctx.author.id)
-        # Get privacy setting using the new method
-        privacy = bot.user_data_handler.get_key(user_id, "privacy")
+
+        # Get visibility setting
+        visibility = bot.user_data_handler.get_key(user_id, "visibility")
 
         # Check visibility if someone other than the owner is trying to view the list
-        if member and privacy == "private" and ctx.author.id != member.id:
+        if member and visibility == "private" and ctx.author.id != member.id:
             await ctx.edit(content="This user's calendar is private.")
             return
 
@@ -240,7 +241,7 @@ def setup(bot: commands.Bot):
 
     @calendar.command(name="remove", description="Remove an event by its ID")
     async def removeevent(ctx: commands.Context, event_id: int):
-        """Command to remove an event by its ID"""
+        '''Command to remove an event by its ID'''
         await ctx.defer()
         user_id = str(ctx.author.id)
 
@@ -251,7 +252,7 @@ def setup(bot: commands.Bot):
 
     @calendar.command(name="wipe", description="Delete all events")
     async def wipe(ctx: commands.Context):
-        """Command to delete all events"""
+        '''Command to delete all events'''
         await ctx.defer()
         user_id = str(ctx.author.id)
 
