@@ -2,7 +2,7 @@ from lib import *
 
 
 class UserDataHandler:
-    """C to handle user data, including encryption and decryption"""
+    """Class to handle user data, including encryption and decryption"""
 
     def __init__(self):
         self.encryption_key = os.getenv("ENCRYPTION_KEY")
