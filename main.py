@@ -21,17 +21,17 @@ async def on_ready():
     print(f"Logged in as {bot.user}")
 
 
-# ------------ TIMEZONES GROUP COMMANDS ------------
-bot.load_extension("timezone_group")
+# ------------ TIMEZONE GROUP COMMANDS ------------
+bot.load_extension("group_timezone")
 
 # ------------ CALENDAR GROUP COMMANDS ------------
-bot.load_extension("calendar_group")
+bot.load_extension("group_calendar")
 
 # ------------ SETTINGS GROUP COMMANDS ------------
-bot.load_extension("settings_group")
+bot.load_extension("group_settings")
 
 # ------------ HELP GROUP COMMANDS ------------
-bot.load_extension("help_group")
+bot.load_extension("group_help")
 
 # ------------ START BOT ------------
 bot.run(TOKEN)
