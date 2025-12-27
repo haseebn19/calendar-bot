@@ -1,74 +1,187 @@
 # Calendar Bot
 
-<img src="logo.png" width="250">
+[![CI](https://github.com/haseebn19/calendar-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/haseebn19/calendar-bot/actions/workflows/ci.yml)
 
-The Calendar Bot is a personal project designed to enhance event management and organization among Discord server members. By allowing users to manage their events and timezones directly within Discord, it simplifies the process of checking availability and planning events. Whether it's for appointments, meetings, or anything else, the Calendar Bot ensures that everyone is on the same page. Not to be confused with discord's event system; this is for the organization of personal events.
+<img src="docs/logo.svg" alt="Calendar Bot Logo" width="250">
+
+A Discord bot for managing personal calendar events with full timezone support.
 
 ## Features
 
-- **Personalized Timezone Management**: Users can set their own timezone, ensuring that events are set in their local time.
-- **Event Management**: Users can add, list, remove, and wipe events from their personal calendar.
-- **Events List**: Events are displayed in a paginated manner, making it easy to navigate through large lists of events.
-- **Timezones List**: Available timezones can be listed and viewed in a paginated manner.
+- **Calendar Management** - Add, list, and remove calendar events
+- **Timezone Support** - Full timezone support with autocomplete
+- **Privacy Controls** - Choose between public and private modes
+- **Ephemeral Responses** - Private mode makes all responses only visible to you
+- **Discord Timestamps** - Events display with Discord's native timestamp formatting
 
 ## Prerequisites
 
-- Python 3.11
-- `py-cord` library
-- `dotenv` for environment variable management
-- Other dependencies as listed in the `lib` folder.
+- Python 3.11 or higher
+- A Discord Bot Token ([Create one here](https://discord.com/developers/applications))
 
 ## Installation
 
-1. Clone the repository:
-   ```powershell
-   git clone https://github.com/haseebn19/calendar-bot.git
+```bash
+git clone https://github.com/haseebn19/calendar-bot.git
+cd calendar-bot
+
+# Create virtual environment
+python -m venv .venv
+
+# Activate virtual environment
+# On Windows:
+.venv\Scripts\activate
+# On macOS/Linux:
+source .venv/bin/activate
+
+# Install the package
+pip install .
+```
+
+## Configuration
+
+Copy the example environment file and add your bot token:
+
+```bash
+cp env.example .env
+```
+
+Then edit `.env` and set your `DISCORD_TOKEN`. See `env.example` for all available options.
+
+## Usage
+
+```bash
+# Make sure virtual environment is activated
+python -m calendar_bot.bot
+```
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `/calendar add` | Add an event to your calendar |
+| `/calendar list` | List your events |
+| `/calendar remove` | Remove an event by ID |
+| `/calendar wipe` | Delete all your events |
+| `/timezone set` | Set your timezone |
+| `/timezone get` | Show your current timezone |
+| `/timezone list` | List all available timezones |
+| `/settings privacy` | Set your privacy mode (public/private) |
+| `/settings view` | View your current settings |
+| `/settings wipe` | Delete all your data (events and account) |
+| `/timestamp` | Convert date/time to Discord timestamp format |
+| `/help commands` | Show all available commands |
+| `/help about` | Learn about the bot |
+
+### Examples
+
+1. Set your timezone:
+   ```
+   /timezone set America/New_York
    ```
 
-2. Navigate to the project directory:
-   ```powershell
-   cd calendar-bot
+2. Add an event:
+   ```
+   /calendar add title:Team Meeting month:January day:15 time:10am
    ```
 
-3. Install the required dependencies using `pip3.11`:
-   ```powershell
-   pip3.11 install -r requirements.txt
+3. List your events:
+   ```
+   /calendar list
    ```
 
-4. Set up your `.env` file with the necessary environment variables:
-   ```env
-   ENCRYPTION_KEY=<your-encryption-key>
-   DISCORD_TOKEN=<your-discord-bot-token>
-   ```
+## Development
 
-5. Run the bot using Python 3.11:
-   ```powershell
-   py -3.11 main.py
-   ```
+### Setup
 
-## Commands
+```bash
+# Clone and enter directory
+git clone https://github.com/haseebn19/calendar-bot.git
+cd calendar-bot
 
-### Timezone Commands:
-  - `/timezone set <timezone_name>`: Set your timezone.
-  - `/timezone list`: List all available timezones.
+# Create and activate virtual environment
+python -m venv .venv
+.venv\Scripts\activate  # Windows
+source .venv/bin/activate  # macOS/Linux
 
-### Calendar Commands:
-  - `/calendar add <title> <year> <month> <day> <hour_minute>`: Add an event to your calendar.
-  - `/calendar list`: List all your events.
-  - `/calendar remove <event_id>`: Remove an event by its ID.
-  - `/calendar wipe`: Delete all your events.
+# Install in editable mode with dev dependencies
+pip install -e ".[dev]"
+```
 
-### Settings Commands:
-  - `/settings visibility <visibility>`: Set your list visibility to public or private.
+### Testing
 
-### Help Commands:
-  - `/help commands`: Get a list of all commands.
+```bash
+# Run tests
+pytest
+
+# Run tests with verbose output
+pytest -v
+
+# Run specific test file
+pytest tests/test_database.py
+```
+
+With coverage:
+
+```bash
+pytest --cov=src/calendar_bot --cov-report=html
+# Open htmlcov/index.html to view coverage report
+```
+
+### Linting
+
+```bash
+# Run linter
+ruff check src tests
+
+# Run linter with auto-fix
+ruff check --fix src tests
+
+# Format code
+ruff format src tests
+```
+
+## Project Structure
+
+```
+calendar-bot/
+├── docs/
+│   └── logo.png
+├── src/calendar_bot/
+│   ├── bot.py
+│   ├── config.py
+│   ├── cogs/
+│   │   ├── base.py
+│   │   ├── calendar.py
+│   │   ├── help.py
+│   │   ├── settings.py
+│   │   ├── timezone.py
+│   │   └── utility.py
+│   ├── database/
+│   │   ├── models.py
+│   │   └── repository.py
+│   └── utils/
+│       ├── datetime_parser.py
+│       └── views.py
+├── tests/
+├── pyproject.toml
+└── README.md
+```
 
 ## Contributing
 
-If you'd like to contribute to the development of my Calendar Bot or have suggestions for improvements, please fork the repository and submit a pull request.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## Credits
+
+- [discord.py](https://discordpy.readthedocs.io/) - Discord API wrapper
+- [aiosqlite](https://aiosqlite.omnilib.dev/) - Async SQLite
+- [pytz](https://pythonhosted.org/pytz/) - Timezone handling
 
 ## License
 
-This project is licensed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html).
-
+This project is licensed under the [GPL-3.0 License](LICENSE).
