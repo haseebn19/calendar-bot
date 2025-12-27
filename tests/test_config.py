@@ -12,7 +12,6 @@ from calendar_bot.config import Config, setup_logging
 
 
 class TestConfig:
-
     def test_config_creation(self) -> None:
         config = Config(
             discord_token="test_token",
@@ -89,7 +88,6 @@ class TestConfigFromEnv:
 
 
 class TestSetupLogging:
-
     def test_setup_logging_returns_logger(self) -> None:
         config = Config(
             discord_token="test",
@@ -115,4 +113,3 @@ class TestSetupLogging:
 
         assert discord_logger.level == logging.WARNING
         assert http_logger.level == logging.WARNING
-

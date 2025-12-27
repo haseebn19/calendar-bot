@@ -99,7 +99,6 @@ class TestEvent:
 
 
 class TestUserEdgeCases:
-
     def test_user_from_row_with_null_privacy(self) -> None:
         now = datetime.now(UTC).isoformat()
         row = (123456789, "Europe/London", None, now, now)
@@ -130,7 +129,6 @@ class TestUserEdgeCases:
 
 
 class TestPrivacySettingEdgeCases:
-
     def test_privacy_enum_values(self) -> None:
         assert PrivacySetting.PUBLIC.value == "public"
         assert PrivacySetting.PRIVATE.value == "private"

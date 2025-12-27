@@ -252,9 +252,7 @@ class TestDatabaseEdgeCases:
         assert user2_events[0].title == "User 2 Event"
 
     @pytest.mark.asyncio
-    async def test_update_timezone_creates_user_if_not_exists(
-        self, db: DatabaseRepository
-    ) -> None:
+    async def test_update_timezone_creates_user_if_not_exists(self, db: DatabaseRepository) -> None:
         """Test that update_user_timezone creates user if they don't exist."""
         user_id = 987654321
 
@@ -265,9 +263,7 @@ class TestDatabaseEdgeCases:
         assert user.timezone == "Asia/Tokyo"
 
     @pytest.mark.asyncio
-    async def test_update_privacy_creates_user_if_not_exists(
-        self, db: DatabaseRepository
-    ) -> None:
+    async def test_update_privacy_creates_user_if_not_exists(self, db: DatabaseRepository) -> None:
         """Test that update_user_privacy creates user if they don't exist."""
         user_id = 987654321
 
