@@ -114,7 +114,7 @@ class TimezoneView(PaginatedView):
         # Build timezone list
         lines = []
         for tz_name, offset in self.current_items:
-            lines.append(f"`{offset}` — {tz_name}")
+            lines.append(f"`{offset}` - {tz_name}")
 
         embed.description = "\n".join(lines)
         embed.set_footer(text=f"Page {self.page + 1}/{self.total_pages}")
@@ -139,7 +139,7 @@ class EventListView(PaginatedView):
         # Build event list
         for event in self.current_items:
             embed.add_field(
-                name=f"`#{event.id}` — {event.title}",
+                name=f"`#{event.id}` - {event.title}",
                 value=f"{event.discord_timestamp} ({event.discord_relative})",
                 inline=False,
             )

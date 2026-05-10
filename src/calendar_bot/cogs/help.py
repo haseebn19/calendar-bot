@@ -38,10 +38,10 @@ class HelpCog(BaseCog):
         embed.add_field(
             name="📅 Calendar",
             value=(
-                "`/calendar add` — Add an event to your calendar\n"
-                "`/calendar list` — List your events\n"
-                "`/calendar remove` — Remove an event by ID\n"
-                "`/calendar wipe` — Delete all your events"
+                "`/calendar add` - Add an event to your calendar\n"
+                "`/calendar list` - List your events\n"
+                "`/calendar remove` - Remove an event by ID\n"
+                "`/calendar wipe` - Delete all your events"
             ),
             inline=False,
         )
@@ -50,9 +50,9 @@ class HelpCog(BaseCog):
         embed.add_field(
             name="🌍 Timezone",
             value=(
-                "`/timezone set` — Set your timezone\n"
-                "`/timezone get` — Show your current timezone\n"
-                "`/timezone list` — List all available timezones"
+                "`/timezone set` - Set your timezone\n"
+                "`/timezone get` - Show your current timezone\n"
+                "`/timezone list` - List all available timezones"
             ),
             inline=False,
         )
@@ -61,9 +61,9 @@ class HelpCog(BaseCog):
         embed.add_field(
             name="⚙️ Settings",
             value=(
-                "`/settings privacy` — Set your privacy mode\n"
-                "`/settings view` — View your current settings\n"
-                "`/settings wipe` — Delete all your data (events and account)"
+                "`/settings privacy` - Set your privacy mode\n"
+                "`/settings view` - View your current settings\n"
+                "`/settings wipe` - Delete all your data (events and account)"
             ),
             inline=False,
         )
@@ -71,7 +71,7 @@ class HelpCog(BaseCog):
         # Utility commands
         embed.add_field(
             name="🔧 Utility",
-            value="`/timestamp` — Convert date/time to Discord timestamp format",
+            value="`/timestamp` - Convert date/time to Discord timestamp format",
             inline=False,
         )
 
@@ -79,7 +79,7 @@ class HelpCog(BaseCog):
         embed.add_field(
             name="❓ Help",
             value=(
-                "`/help commands` — Show this help message\n`/help about` — Learn about the bot"
+                "`/help commands` - Show this help message\n`/help about` - Learn about the bot"
             ),
             inline=False,
         )

@@ -44,8 +44,8 @@ We keep data only as long as needed for the Bot to function.
 ## 5. Deletion (Self Service)
 
 You can delete your data at any time using the Bot's built-in commands:
-- `/calendar wipe` — deletes all your events
-- `/settings wipe` — deletes all your data (events and account/settings)
+- `/calendar wipe` - deletes all your events
+- `/settings wipe` - deletes all your data (events and account/settings)
 
 After deletion, some limited information may remain temporarily in operational logs or backups (if any) for a short period.
 
