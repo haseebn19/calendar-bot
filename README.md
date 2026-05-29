@@ -146,7 +146,7 @@ ruff format src tests
 ```
 calendar-bot/
 ├── docs/
-│   └── logo.png
+│   └── logo.svg
 ├── src/calendar_bot/
 │   ├── bot.py
 │   ├── config.py
