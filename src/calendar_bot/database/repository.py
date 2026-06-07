@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
@@ -149,8 +150,6 @@ class DatabaseRepository:
             params: list = [user_id]
 
             if not include_past:
-                import time
-
                 query += " AND timestamp >= ?"
                 params.append(int(time.time()))
 
