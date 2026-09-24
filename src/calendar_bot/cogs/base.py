@@ -10,6 +10,7 @@ from discord.ext import commands
 
 if TYPE_CHECKING:
     from calendar_bot.bot import CalendarBot
+    from calendar_bot.database import DatabaseRepository
 
 # Sentinel to distinguish "not passed" from "explicitly None"
 _UNSET: Any = object()
@@ -23,7 +24,7 @@ class BaseCog(commands.Cog):
         self.logger = logging.getLogger(f"calendar_bot.cogs.{self.__class__.__name__}")
 
     @property
-    def db(self):
+    def db(self) -> DatabaseRepository:
         return self.bot.db
 
     async def send_response(

@@ -204,7 +204,7 @@ class DateTimeParser:
             )
 
         # Handle day name (e.g., "Monday") - ignores month/year, finds next occurrence
-        if is_day_name:
+        if is_day_name and parsed_day is not None:
             next_date = self.get_next_weekday(parsed_day)
             return ParsedDateTime(
                 year=next_date.year,
@@ -230,6 +230,7 @@ class DateTimeParser:
 
         # Determine final date based on what was specified
         if month_was_specified and parsed_day is not None:
+            assert parsed_month is not None
             # Both month and day specified - validate the combination
             if parsed_day > days_in_month(parsed_year, parsed_month):
                 month_name = calendar.month_name[parsed_month]
@@ -250,6 +251,7 @@ class DateTimeParser:
                         )
 
         elif month_was_specified and parsed_day is None:
+            assert parsed_month is not None
             # Only month specified - use 1st of that month, next occurrence
             parsed_day = 1
             if not year_was_specified and parsed_month <= now.month:
@@ -279,6 +281,8 @@ class DateTimeParser:
             parsed_year = now.year
             parsed_month = now.month
             parsed_day = now.day
+
+        assert parsed_month is not None and parsed_day is not None
 
         # Final time-based adjustment: if only time specified and it's passed, use tomorrow
         if not month_was_specified and day is None and time is not None:

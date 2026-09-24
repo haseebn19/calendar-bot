@@ -4,12 +4,12 @@
 
 <img src="docs/logo.svg" alt="Calendar Bot Logo" width="250">
 
-A Discord bot for managing personal calendar events with full timezone support.
+A Discord bot for managing personal events across time zones.
 
 ## Features
 
 - **Calendar Management** - Add, list, and remove calendar events
-- **Timezone Support** - Full timezone support with autocomplete
+- **Timezone Support** - Timezone selection with autocomplete
 - **Privacy Controls** - Choose between public and private modes
 - **Ephemeral Responses** - Private mode makes all responses only visible to you
 - **Discord Timestamps** - Events display with Discord's native timestamp formatting

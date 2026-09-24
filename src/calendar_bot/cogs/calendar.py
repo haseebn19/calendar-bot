@@ -134,6 +134,7 @@ class CalendarCog(BaseCog):
 
         # Check privacy if viewing someone else's calendar
         if not is_own_calendar:
+            assert member is not None
             target_user = await self.db.get_user(target_id)
             if target_user and target_user.is_private:
                 await self.edit_response(
@@ -154,6 +155,7 @@ class CalendarCog(BaseCog):
                     ),
                 )
             else:
+                assert member is not None
                 await self.edit_response(
                     interaction,
                     content=f"📭 {member.display_name} doesn't have any events.",
@@ -168,6 +170,7 @@ class CalendarCog(BaseCog):
 
         embed = view.create_embed()
         if not is_own_calendar:
+            assert member is not None
             embed.title = f"📅 {member.display_name}'s Events"
 
         await self.edit_response(

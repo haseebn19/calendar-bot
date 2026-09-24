@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Self
+from typing import Any, Self
 
 
 class PrivacySetting(StrEnum):
@@ -33,7 +34,7 @@ class User:
         return self.privacy == PrivacySetting.PRIVATE
 
     @classmethod
-    def from_row(cls, row: tuple) -> Self:
+    def from_row(cls, row: Sequence[Any]) -> Self:
         return cls(
             discord_id=row[0],
             timezone=row[1],
@@ -66,7 +67,7 @@ class Event:
         return f"<t:{self.timestamp}:R>"
 
     @classmethod
-    def from_row(cls, row: tuple) -> Self:
+    def from_row(cls, row: Sequence[Any]) -> Self:
         return cls(
             id=row[0],
             user_id=row[1],
