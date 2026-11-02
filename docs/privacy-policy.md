@@ -5,19 +5,18 @@ title: Privacy Policy
 
 # Privacy Policy
 
-**Effective date:** December 29, 2025
+**Effective date:** October 26, 2026
 
 This Privacy Policy explains what Calendar Bot (the "Bot") collects and how it is used.
 
-## 1. What Data the Bot Collects
+## 1. What Data the Bot Stores
 
-The Bot collects the minimum information needed to provide its features. This can include:
-- Discord user ID (to associate events and settings with you)
-- Optional context identifiers like server (guild) ID and channel ID (to respond correctly)
-- Settings you choose (timezone and privacy mode)
-- Event data you submit via commands (for example event title and date/time)
+The Bot stores only what it needs to provide its features:
+- Your Discord user ID, to link your events and settings to you
+- The settings you choose (timezone and privacy mode)
+- The events you add (title and date/time)
 
-The Bot is not intended to read or store your normal chat messages. It only processes data needed to respond to commands.
+When you use a command, Discord tells the Bot which server and channel it was used in so the Bot can reply there. The Bot does not store these, and it does not read or store chat messages.
 
 ## 2. How the Bot Uses Data
 
@@ -39,13 +38,13 @@ Discord also processes data under Discord's own policies when you use Discord.
 
 ## 4. Retention
 
-We keep data only as long as needed for the Bot to function.
+Your events and settings are kept until you delete them, as described below.
 
 ## 5. Deletion (Self Service)
 
 You can delete your data at any time using the Bot's built-in commands:
-- `/calendar wipe` - deletes all your events
-- `/settings wipe` - deletes all your data (events and account/settings)
+- `/calendar wipe` deletes all your events
+- `/settings wipe` deletes all your data (events and account settings)
 
 After deletion, some limited information may remain temporarily in operational logs or backups (if any) for a short period.
 
@@ -65,4 +64,4 @@ We do not provide user support. For deletion, use the wipe commands above.
 
 ---
 
-[← Back to Home](./)
+[Back to Home](./)

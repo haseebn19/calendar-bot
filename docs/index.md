@@ -5,7 +5,7 @@ title: Home
 
 # Calendar Bot
 
-A Discord bot for managing personal calendar events with full timezone support.
+A Discord bot for keeping track of your events, in your own timezone.
 
 ## Legal
 
@@ -18,4 +18,4 @@ A Discord bot for managing personal calendar events with full timezone support.
 
 We do not provide user support. For data deletion, use the `/settings wipe` command in Discord.
 
-*Last updated: December 29, 2025*
+*Last updated: October 26, 2026*

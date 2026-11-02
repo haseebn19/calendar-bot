@@ -5,7 +5,7 @@ title: Terms of Service
 
 # Terms of Service
 
-**Effective date:** December 29, 2025
+**Effective date:** October 26, 2026
 
 By using or adding Calendar Bot (the "Bot") to a Discord server, you agree to these Terms.
 
@@ -32,7 +32,7 @@ You agree not to:
 
 You are responsible for what you enter into the Bot (for example event titles and event times).
 
-- If you choose **public mode**, outputs may be visible to others in the channel where you used a command.
+- If you choose **public mode**, outputs may be visible to others in the channel where you used a command, and other users can view your events with `/calendar list`.
 - If you choose **private mode**, the Bot uses Discord's ephemeral responses, which are intended to be visible only to you.
 
 ## 6. Changes and Shutdown
@@ -49,4 +49,4 @@ See our [Privacy Policy](./privacy-policy) for details on data collection and de
 
 ---
 
-[← Back to Home](./)
+[Back to Home](./)

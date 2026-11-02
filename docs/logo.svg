@@ -4,7 +4,7 @@
       <stop offset="0%" stop-color="#4f46e5" /> <!-- Indigo-600 -->
       <stop offset="100%" stop-color="#7c3aed" /> <!-- Violet-600 -->
     </linearGradient>
-    
+
     <linearGradient id="binderGradient" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
         <stop offset="0%" stop-color="#d1d5db" />
         <stop offset="50%" stop-color="#f3f4f6" />
@@ -15,22 +15,22 @@
       <feDropShadow dx="0" dy="12" stdDeviation="15" flood-color="#000000" flood-opacity="0.2" />
     </filter>
   </defs>
-  
+
   <!-- Background: Squircle -->
   <rect x="0" y="0" width="512" height="512" rx="120" fill="url(#bgGradient)" />
 
   <!-- Calendar Icon Container -->
   <!-- Center: (512-320)/2 = 96. Let's make the calendar 320px wide. -->
   <g transform="translate(96, 86)">
-      
+
     <!-- Calendar Page (Paper) -->
     <!-- Body height 280, width 320 -->
     <rect x="0" y="40" width="320" height="280" rx="24" fill="#ffffff" filter="url(#shadow)" />
-    
+
     <!-- Calendar Header -->
     <!-- Clip the top part to match rounded corners -->
     <path d="M0 64 C0 50.7 10.7 40 24 40 H296 C309.3 40 320 50.7 320 64 V110 H0 V64 Z" fill="#ef4444" />
-    
+
     <!-- Rings/Binders -->
     <!-- Left Ring -->
     <rect x="70" y="20" width="24" height="60" rx="12" fill="url(#binderGradient)" />

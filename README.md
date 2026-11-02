@@ -8,16 +8,15 @@ A Discord bot for managing personal events across time zones.
 
 ## Features
 
-- **Calendar Management** - Add, list, and remove calendar events
-- **Timezone Support** - Timezone selection with autocomplete
-- **Privacy Controls** - Choose between public and private modes
-- **Ephemeral Responses** - Private mode makes all responses only visible to you
-- **Discord Timestamps** - Events display with Discord's native timestamp formatting
+- **Calendar Management**: Add, list, and remove calendar events
+- **Timezone Support**: Timezone selection with autocomplete
+- **Privacy Controls**: Private mode (the default) makes responses visible only to you; public mode shows them to the channel
+- **Discord Timestamps**: Events display in each viewer's local time using Discord's timestamp formatting
 
 ## Prerequisites
 
-- Python 3.11 or higher
-- A Discord Bot Token ([Create one here](https://discord.com/developers/applications))
+- Python 3.11+
+- A Discord bot token ([create one here](https://discord.com/developers/applications))
 
 ## Installation
 
@@ -43,17 +42,20 @@ pip install .
 Copy the example environment file and add your bot token:
 
 ```bash
-cp env.example .env
+cp .env.example .env
 ```
 
-Then edit `.env` and set your `DISCORD_TOKEN`. See `env.example` for all available options.
+Then edit `.env` and set your `DISCORD_TOKEN`. See `.env.example` for all available options.
 
 ## Usage
 
+With the virtual environment activated:
+
 ```bash
-# Make sure virtual environment is activated
-python -m calendar_bot.bot
+calendar-bot
 ```
+
+`python -m calendar_bot.bot` does the same. Events and settings are stored in SQLite at `DATABASE_PATH` (`./data/calendar.db` by default).
 
 ### Commands
 
@@ -69,9 +71,12 @@ python -m calendar_bot.bot
 | `/settings privacy` | Set your privacy mode (public/private) |
 | `/settings view` | View your current settings |
 | `/settings wipe` | Delete all your data (events and account) |
-| `/timestamp` | Convert date/time to Discord timestamp format |
 | `/help commands` | Show all available commands |
 | `/help about` | Learn about the bot |
+
+### Dates and Times
+
+`/calendar add` takes any of `year`, `month`, `day`, and `time`, read in your timezone. Parts you leave out are filled with the next date that matches: `day:15` is the next 15th, `day:Friday time:6pm` is the coming Friday, and `time:9am` is today if it is still before 9am, otherwise tomorrow. A month on its own means the 1st, and the time defaults to midnight. With a `year`, the date is exactly the one given.
 
 ### Examples
 
@@ -95,14 +100,12 @@ python -m calendar_bot.bot
 ### Setup
 
 ```bash
-# Clone and enter directory
-git clone https://github.com/haseebn19/calendar-bot.git
-cd calendar-bot
-
 # Create and activate virtual environment
 python -m venv .venv
-.venv\Scripts\activate  # Windows
-source .venv/bin/activate  # macOS/Linux
+# On Windows:
+.venv\Scripts\activate
+# On macOS/Linux:
+source .venv/bin/activate
 
 # Install in editable mode with dev dependencies
 pip install -e ".[dev]"
@@ -114,67 +117,44 @@ pip install -e ".[dev]"
 # Run tests
 pytest
 
-# Run tests with verbose output
-pytest -v
-
-# Run specific test file
+# Run one test file
 pytest tests/test_database.py
 ```
 
 With coverage:
 
 ```bash
-pytest --cov=src/calendar_bot --cov-report=html
-# Open htmlcov/index.html to view coverage report
+pytest --cov --cov-report=html
+# Open htmlcov/index.html to view the coverage report
 ```
 
-### Linting
+### Linting and Type Checking
 
 ```bash
-# Run linter
-ruff check src tests
-
-# Run linter with auto-fix
-ruff check --fix src tests
-
-# Format code
-ruff format src tests
+ruff check .
+ruff format --check .
+mypy src
 ```
+
+`ruff check --fix .` and `ruff format .` apply fixes and formatting.
 
 ## Project Structure
 
-```
+```text
 calendar-bot/
-├── docs/
-│   └── logo.svg
-├── src/calendar_bot/
-│   ├── bot.py
-│   ├── config.py
-│   ├── cogs/
-│   │   ├── base.py
-│   │   ├── calendar.py
-│   │   ├── help.py
-│   │   ├── settings.py
-│   │   ├── timezone.py
-│   │   └── utility.py
-│   ├── database/
-│   │   ├── models.py
-│   │   └── repository.py
-│   └── utils/
-│       ├── datetime_parser.py
-│       └── views.py
-├── tests/
-├── pyproject.toml
-└── README.md
++-- docs/                    Logo, terms of service, and privacy policy (GitHub Pages)
++-- src/calendar_bot/
+|   +-- bot.py               Bot class and entry point
+|   +-- config.py            Settings loaded from .env
+|   +-- cogs/                Slash command groups: calendar, timezone, settings, help
+|   +-- database/            Data models and the SQLite repository
+|   +-- utils/               Date and time parsing, and interactive views
++-- tests/                   pytest suite
++-- .env.example             Example configuration
++-- pyproject.toml           Package, Ruff, mypy, and pytest configuration
 ```
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+The [terms of service](https://haseebn19.github.io/calendar-bot/terms-of-service) and [privacy policy](https://haseebn19.github.io/calendar-bot/privacy-policy) are published from `docs/`.
 
 ## Credits
 
