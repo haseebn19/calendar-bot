@@ -2,32 +2,26 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any, Self
+from typing import TYPE_CHECKING, Any, Self
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 class PrivacySetting(StrEnum):
-    """User privacy setting."""
-
     PUBLIC = "public"
     PRIVATE = "private"
-
-    def __str__(self) -> str:
-        return self.value
 
 
 @dataclass(slots=True)
 class User:
-    """Discord user data."""
+    """A user's settings. Users who have not chosen a privacy mode are private."""
 
     discord_id: int
     timezone: str | None = None
     privacy: PrivacySetting = PrivacySetting.PRIVATE
-    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     @property
     def is_private(self) -> bool:
@@ -35,43 +29,28 @@ class User:
 
     @classmethod
     def from_row(cls, row: Sequence[Any]) -> Self:
-        return cls(
-            discord_id=row[0],
-            timezone=row[1],
-            privacy=PrivacySetting(row[2]) if row[2] else PrivacySetting.PRIVATE,
-            created_at=datetime.fromisoformat(row[3]) if row[3] else datetime.now(UTC),
-            updated_at=datetime.fromisoformat(row[4]) if row[4] else datetime.now(UTC),
-        )
+        discord_id, timezone, privacy = row
+        return cls(discord_id=discord_id, timezone=timezone, privacy=PrivacySetting(privacy))
 
 
 @dataclass(slots=True)
 class Event:
-    """Calendar event."""
-
     id: int | None
     user_id: int
     title: str
     timestamp: int  # Unix timestamp (UTC)
-    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
-
-    @property
-    def event_datetime(self) -> datetime:
-        return datetime.fromtimestamp(self.timestamp, tz=UTC)
 
     @property
     def discord_timestamp(self) -> str:
+        """Discord markup that shows the date and time in each viewer's own timezone."""
         return f"<t:{self.timestamp}:f>"
 
     @property
     def discord_relative(self) -> str:
+        """Discord markup that shows how long until, or since, the event."""
         return f"<t:{self.timestamp}:R>"
 
     @classmethod
     def from_row(cls, row: Sequence[Any]) -> Self:
-        return cls(
-            id=row[0],
-            user_id=row[1],
-            title=row[2],
-            timestamp=row[3],
-            created_at=datetime.fromisoformat(row[4]) if row[4] else datetime.now(UTC),
-        )
+        event_id, user_id, title, timestamp = row
+        return cls(id=event_id, user_id=user_id, title=title, timestamp=timestamp)

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from importlib.metadata import version
 from typing import TYPE_CHECKING
 
 import discord
@@ -23,20 +24,11 @@ class HelpCog(BaseCog):
 
     @help_group.command(name="commands", description="Show all available commands")
     async def show_commands(self, interaction: discord.Interaction) -> None:
-        """Show all available commands grouped by category.
+        """Show all available commands grouped by category."""
+        embed = discord.Embed(title="Calendar Bot Commands", color=discord.Color.blue())
 
-        Args:
-            interaction: The Discord interaction.
-        """
-        embed = discord.Embed(
-            title="📚 Calendar Bot Commands",
-            description="Here are all the available commands:",
-            color=discord.Color.blue(),
-        )
-
-        # Calendar commands
         embed.add_field(
-            name="📅 Calendar",
+            name="Calendar",
             value=(
                 "`/calendar add` - Add an event to your calendar\n"
                 "`/calendar list` - List your events\n"
@@ -45,10 +37,8 @@ class HelpCog(BaseCog):
             ),
             inline=False,
         )
-
-        # Timezone commands
         embed.add_field(
-            name="🌍 Timezone",
+            name="Timezone",
             value=(
                 "`/timezone set` - Set your timezone\n"
                 "`/timezone get` - Show your current timezone\n"
@@ -56,10 +46,8 @@ class HelpCog(BaseCog):
             ),
             inline=False,
         )
-
-        # Settings commands
         embed.add_field(
-            name="⚙️ Settings",
+            name="Settings",
             value=(
                 "`/settings privacy` - Set your privacy mode\n"
                 "`/settings view` - View your current settings\n"
@@ -67,67 +55,45 @@ class HelpCog(BaseCog):
             ),
             inline=False,
         )
-
-        # Utility commands
         embed.add_field(
-            name="🔧 Utility",
-            value="`/timestamp` - Convert date/time to Discord timestamp format",
+            name="Help",
+            value="`/help commands` - Show this help message\n`/help about` - Learn about the bot",
             inline=False,
         )
-
-        # Help commands
-        embed.add_field(
-            name="❓ Help",
-            value=(
-                "`/help commands` - Show this help message\n`/help about` - Learn about the bot"
-            ),
-            inline=False,
-        )
-
-        embed.set_footer(text="Tip: Use Tab to autocomplete commands and options!")
+        embed.set_footer(text="Tip: press Tab to autocomplete commands and options.")
 
         await self.send_response(interaction, embed=embed)
 
     @help_group.command(name="about", description="Learn about Calendar Bot")
     async def show_about(self, interaction: discord.Interaction) -> None:
-        """Show information about the bot.
-
-        Args:
-            interaction: The Discord interaction.
-        """
+        """Show what the bot does and how to get started."""
         embed = discord.Embed(
-            title="📅 About Calendar Bot",
-            description=(
-                "A simple and powerful Discord bot for managing your personal calendar events "
-                "with full timezone support."
-            ),
+            title="About Calendar Bot",
+            description="Keep track of your events on Discord, in your own timezone.",
             color=discord.Color.green(),
         )
-
         embed.add_field(
-            name="✨ Features",
+            name="Features",
             value=(
                 "• Create and manage calendar events\n"
-                "• Full timezone support\n"
+                "• Dates and times in your own timezone\n"
                 "• Privacy controls (public/private mode)\n"
                 "• View other users' public calendars\n"
-                "• Discord timestamp formatting"
+                "• Events shown in each viewer's local time"
             ),
             inline=False,
         )
-
         embed.add_field(
-            name="🚀 Getting Started",
+            name="Getting Started",
             value=(
                 "1. Set your timezone: `/timezone set America/New_York`\n"
-                "2. Add an event: `/calendar add Meeting month:January day:15 time:10am`\n"
+                "2. Add an event: `/calendar add title:Meeting month:January day:15 time:10am`\n"
                 "3. View events: `/calendar list`"
             ),
             inline=False,
         )
-
         embed.add_field(
-            name="🔒 Privacy",
+            name="Privacy",
             value=(
                 "By default, your calendar is **private**. "
                 "Use `/settings privacy` to make it public if you want others to see your events."
@@ -135,19 +101,15 @@ class HelpCog(BaseCog):
             inline=False,
         )
 
-        # Add bot info
         if self.bot.user:
             embed.set_thumbnail(url=self.bot.user.display_avatar.url)
-
-        embed.set_footer(text=f"Version 2.0.0 • Running on discord.py {discord.__version__}")
+        embed.set_footer(
+            text=f"Version {version('calendar-bot')}, running on discord.py {discord.__version__}"
+        )
 
         await self.send_response(interaction, embed=embed)
 
 
 async def setup(bot: CalendarBot) -> None:
-    """Load the help cog.
-
-    Args:
-        bot: The bot instance.
-    """
+    """Load the help cog."""
     await bot.add_cog(HelpCog(bot))

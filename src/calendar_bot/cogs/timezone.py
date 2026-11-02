@@ -15,6 +15,20 @@ from calendar_bot.utils.views import TimezoneView
 if TYPE_CHECKING:
     from calendar_bot.bot import CalendarBot
 
+# Discord shows at most 25 autocomplete choices
+MAX_AUTOCOMPLETE_CHOICES = 25
+
+
+def timezones_by_offset() -> list[tuple[str, str]]:
+    """Return (name, "UTC+hh:mm") for each common timezone, sorted by current UTC offset."""
+    entries = []
+    for name in pytz.common_timezones:
+        local = datetime.now(pytz.timezone(name))
+        offset = local.strftime("%z")
+        entries.append((local.utcoffset(), name, f"UTC{offset[:3]}:{offset[3:]}"))
+    entries.sort()
+    return [(name, label) for _, name, label in entries]
+
 
 class TimezoneCog(BaseCog):
     """Cog for timezone management commands."""
@@ -31,15 +45,9 @@ class TimezoneCog(BaseCog):
         interaction: discord.Interaction,
         timezone_name: str,
     ) -> None:
-        """Set the user's timezone.
-
-        Args:
-            interaction: The Discord interaction.
-            timezone_name: The timezone string.
-        """
+        """Set the user's timezone."""
         await self.defer_response(interaction)
 
-        # Validate timezone
         if timezone_name not in pytz.all_timezones_set:
             await self.edit_response(
                 interaction,
@@ -54,16 +62,12 @@ class TimezoneCog(BaseCog):
             )
             return
 
-        # Save timezone
         await self.db.update_user_timezone(interaction.user.id, timezone_name)
 
-        # Get current time in the timezone
-        now = datetime.now(pytz.timezone(timezone_name))
-        formatted_time = now.strftime("%I:%M %p")
-
+        current_time = datetime.now(pytz.timezone(timezone_name)).strftime("%I:%M %p")
         await self.edit_response(
             interaction,
-            content=(f"✅ Timezone set to **{timezone_name}**\nCurrent time: **{formatted_time}**"),
+            content=f"✅ Timezone set to **{timezone_name}**\nCurrent time: **{current_time}**",
         )
         self.logger.info("User %s set timezone to %s", interaction.user.id, timezone_name)
 
@@ -73,77 +77,29 @@ class TimezoneCog(BaseCog):
         interaction: discord.Interaction,
         current: str,
     ) -> list[app_commands.Choice[str]]:
-        """Autocomplete for timezone names.
-
-        Args:
-            interaction: The Discord interaction.
-            current: Current input string.
-
-        Returns:
-            List of matching timezone choices.
-        """
-        # Filter and sort timezones
+        """Suggest common timezones containing the text typed so far."""
         current_lower = current.lower()
-        matches = [tz for tz in pytz.common_timezones if current_lower in tz.lower()][
-            :25
-        ]  # Discord limits to 25 choices
-
-        return [app_commands.Choice(name=tz, value=tz) for tz in sorted(matches)]
+        matches = [tz for tz in pytz.common_timezones if current_lower in tz.lower()]
+        return [app_commands.Choice(name=tz, value=tz) for tz in matches[:MAX_AUTOCOMPLETE_CHOICES]]
 
     @timezone_group.command(name="list", description="List all available timezones")
     async def list_timezones(self, interaction: discord.Interaction) -> None:
-        """List all available timezones with pagination.
-
-        Args:
-            interaction: The Discord interaction.
-        """
+        """List the common timezones with their UTC offsets, a page at a time."""
         await self.defer_response(interaction)
 
-        # Create timezone list with current UTC offsets
-        timezone_list = []
-        for tz_name in pytz.common_timezones:
-            try:
-                tz = pytz.timezone(tz_name)
-                offset = datetime.now(tz).strftime("%z")
-                # Format offset nicely
-                formatted_offset = f"UTC{offset[:3]}:{offset[3:]}"
-                timezone_list.append((tz_name, formatted_offset))
-            except Exception:
-                continue
-
-        # Sort by offset
-        def offset_key(item: tuple) -> int:
-            offset = item[1].replace("UTC", "").replace(":", "")
-            try:
-                return int(offset)
-            except ValueError:
-                return 0
-
-        timezone_list.sort(key=offset_key)
-
-        # Create paginated view
         view = TimezoneView(
-            items=timezone_list,
+            items=timezones_by_offset(),
             author_id=interaction.user.id,
+            title="Available Timezones",
         )
-
-        await self.edit_response(
-            interaction,
-            embed=view.create_embed(),
-            view=view,
-        )
+        await self.edit_response(interaction, embed=view.create_embed(), view=view)
 
     @timezone_group.command(name="get", description="Show your current timezone")
     async def get_timezone(self, interaction: discord.Interaction) -> None:
-        """Show the user's current timezone.
-
-        Args:
-            interaction: The Discord interaction.
-        """
+        """Show the user's timezone and the current time there."""
         await self.defer_response(interaction)
 
         user = await self.db.get_user(interaction.user.id)
-
         if not user or not user.timezone:
             await self.edit_response(
                 interaction,
@@ -153,19 +109,15 @@ class TimezoneCog(BaseCog):
             )
             return
 
-        now = datetime.now(pytz.timezone(user.timezone))
-        formatted_time = now.strftime("%A, %B %d, %Y at %I:%M %p")
-
+        current_time = datetime.now(pytz.timezone(user.timezone)).strftime(
+            "%A, %B %d, %Y at %I:%M %p"
+        )
         await self.edit_response(
             interaction,
-            content=(f"🕐 Your timezone: **{user.timezone}**\nCurrent time: **{formatted_time}**"),
+            content=f"🕐 Your timezone: **{user.timezone}**\nCurrent time: **{current_time}**",
         )
 
 
 async def setup(bot: CalendarBot) -> None:
-    """Load the timezone cog.
-
-    Args:
-        bot: The bot instance.
-    """
+    """Load the timezone cog."""
     await bot.add_cog(TimezoneCog(bot))

@@ -5,12 +5,15 @@ from __future__ import annotations
 import calendar
 import re
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import MAXYEAR, MINYEAR, date, datetime, timedelta
+from itertools import islice
 from typing import TYPE_CHECKING
 
 import pytz
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from pytz.tzinfo import BaseTzInfo
 
 DAYS_OF_WEEK = {
@@ -24,11 +27,17 @@ DAYS_OF_WEEK = {
 }
 
 TIME_PATTERNS = {
-    "12h_with_minutes": re.compile(r"^([01]?[0-9]|2[0-3]):([0-5][0-9])(am|pm)$", re.IGNORECASE),
-    "12h_no_minutes": re.compile(r"^([01]?[0-9]|2[0-3])(am|pm)$", re.IGNORECASE),
+    "12h_with_minutes": re.compile(r"^([01]?[0-9]):([0-5][0-9])(am|pm)$", re.IGNORECASE),
+    "12h_no_minutes": re.compile(r"^([01]?[0-9])(am|pm)$", re.IGNORECASE),
     "24h_with_minutes": re.compile(r"^([01]?[0-9]|2[0-3]):([0-5][0-9])$"),
     "24h_no_minutes": re.compile(r"^([01]?[0-9]|2[0-3])$"),
 }
+
+# Month names must be at least this long to be recognized ("Sep", "Sept", "September")
+MIN_MONTH_PREFIX = 3
+
+# February 29 can be up to eight years away (leap years skip 2100, 2200, and 2300)
+MAX_MONTHS_AHEAD = 12 * 8
 
 
 @dataclass(frozen=True, slots=True)
@@ -53,6 +62,13 @@ def days_in_month(year: int, month: int) -> int:
     return calendar.monthrange(year, month)[1]
 
 
+def _months_from(year: int, month: int) -> Iterator[tuple[int, int]]:
+    """Yield (year, month) pairs starting at the given month."""
+    while True:
+        yield year, month
+        year, month = (year + 1, 1) if month == 12 else (year, month + 1)
+
+
 class DateTimeParser:
     """Parser for date and time strings with timezone support."""
 
@@ -64,27 +80,24 @@ class DateTimeParser:
         return datetime.now(self.timezone)
 
     def parse_month(self, month: str | int | None) -> int | None:
+        """Parse a month number, name, or abbreviation. Returns None if invalid."""
         if month is None:
             return None
 
         if isinstance(month, int):
             return month if 1 <= month <= 12 else None
 
-        try:
-            month_num = int(month)
-            return month_num if 1 <= month_num <= 12 else None
-        except ValueError:
-            pass
+        text = month.strip().lower()
+        if text.isdigit():
+            number = int(text)
+            return number if 1 <= number <= 12 else None
 
-        try:
-            return datetime.strptime(month, "%B").month
-        except ValueError:
-            pass
-
-        try:
-            return datetime.strptime(month, "%b").month
-        except ValueError:
+        if len(text) < MIN_MONTH_PREFIX:
             return None
+        for number in range(1, 13):
+            if calendar.month_name[number].lower().startswith(text):
+                return number
+        return None
 
     def parse_time(self, time_str: str | None) -> tuple[int | None, int | None]:
         """Parse time string. Returns (hour, minute), (None, None) if empty, (-1, -1) if invalid."""
@@ -94,15 +107,10 @@ class DateTimeParser:
         time_str = time_str.strip().lower()
 
         if match := TIME_PATTERNS["12h_with_minutes"].match(time_str):
-            hours = int(match.group(1))
-            minutes = int(match.group(2))
-            period = match.group(3).lower()
-            return self._adjust_12h(hours, minutes, period)
+            return self._adjust_12h(int(match.group(1)), int(match.group(2)), match.group(3))
 
         if match := TIME_PATTERNS["12h_no_minutes"].match(time_str):
-            hours = int(match.group(1))
-            period = match.group(2).lower()
-            return self._adjust_12h(hours, 0, period)
+            return self._adjust_12h(int(match.group(1)), 0, match.group(2))
 
         if match := TIME_PATTERNS["24h_with_minutes"].match(time_str):
             return int(match.group(1)), int(match.group(2))
@@ -114,7 +122,8 @@ class DateTimeParser:
 
     @staticmethod
     def _adjust_12h(hours: int, minutes: int, period: str) -> tuple[int, int]:
-        if hours > 12:
+        """Convert a 12-hour time to 24-hour. Hours must be 1 to 12."""
+        if not 1 <= hours <= 12:
             return -1, -1
 
         if period == "pm" and hours != 12:
@@ -125,26 +134,20 @@ class DateTimeParser:
         return hours, minutes
 
     def parse_day_name(self, day_name: str) -> int | None:
-        """Get day of week number for a day name. Returns None if invalid."""
-        day_name = day_name.lower()
+        """Get the weekday number (Monday is 0) for a day name or unambiguous prefix."""
+        day_name = day_name.strip().lower()
+        if not day_name:
+            return None
 
-        for name, dow in DAYS_OF_WEEK.items():
-            if name.startswith(day_name):
-                return dow
-
-        return None
-
-    def get_next_weekday(self, target_dow: int) -> datetime:
-        """Get the next occurrence of a weekday."""
-        now = self.now
-        current_dow = now.weekday()
-        days_ahead = (target_dow - current_dow + 7) % 7
-        if days_ahead == 0:
-            days_ahead = 7
-        return now + timedelta(days=days_ahead)
+        matches = [dow for name, dow in DAYS_OF_WEEK.items() if name.startswith(day_name)]
+        return matches[0] if len(matches) == 1 else None
 
     def parse_day(self, day: str | int | None) -> tuple[int | None, bool]:
-        """Parse day input. Returns (day_number, is_day_name). Returns (None, False) if empty, (-1, False) if invalid."""
+        """Parse day input. Returns (day_number, is_day_name).
+
+        Returns (None, False) if empty and (-1, False) if invalid. For a day name, day_number is
+        the weekday (Monday is 0).
+        """
         if day is None:
             return None, False
 
@@ -163,20 +166,6 @@ class DateTimeParser:
 
         return -1, False
 
-    def _find_next_month_with_day(
-        self, day: int, start_year: int, start_month: int
-    ) -> tuple[int, int]:
-        """Find the next month that has the given day number."""
-        year, month = start_year, start_month
-        for _ in range(12):
-            if day <= days_in_month(year, month):
-                return year, month
-            month += 1
-            if month > 12:
-                month = 1
-                year += 1
-        return year, month
-
     def parse(
         self,
         year: int | None = None,
@@ -184,123 +173,100 @@ class DateTimeParser:
         day: str | int | None = None,
         time: str | None = None,
     ) -> ParsedDateTime:
-        """Parse date/time components with next-occurrence defaults."""
-        now = self.now
+        """Parse date and time parts into the date they describe.
 
-        # Parse time first
-        hours, minutes = self.parse_time(time)
-        if hours == -1 and minutes == -1:
+        With a year, the date is exactly the one given: the month and day default to January
+        and the 1st. Without a year, the result is the next date and time that matches every
+        part given, so "the 15th" is the next 15th and "10am" is today or tomorrow. A month on
+        its own means the 1st of that month, and a day name means the next such weekday. The
+        time defaults to midnight.
+        """
+        hour, minute = self.parse_time(time)
+        if hour == -1:
             return ParsedDateTime.invalid(
                 f"Invalid time: '{time}'. Use formats like '10am', '14:30', or '10:30pm'."
             )
-        if hours is None:
-            hours, minutes = 0, 0
+        if hour is None or minute is None:
+            hour, minute = 0, 0
 
-        # Parse day (could be number or day name)
-        parsed_day, is_day_name = self.parse_day(day)
-        if parsed_day == -1:
+        day_number, is_day_name = self.parse_day(day)
+        if day_number == -1:
             return ParsedDateTime.invalid(
                 f"Invalid day: '{day}'. Use day number (1-31) or day name (e.g., 'Monday')."
             )
 
-        # Handle day name (e.g., "Monday") - ignores month/year, finds next occurrence
-        if is_day_name and parsed_day is not None:
-            next_date = self.get_next_weekday(parsed_day)
-            return ParsedDateTime(
-                year=next_date.year,
-                month=next_date.month,
-                day=next_date.day,
-                hour=hours,
-                minute=minutes or 0,
+        if year is not None and not MINYEAR <= year <= MAXYEAR:
+            return ParsedDateTime.invalid(
+                f"Invalid year: {year}. Use a year from {MINYEAR} to {MAXYEAR}."
             )
 
-        # Parse month
-        parsed_month: int | None = None
-        month_was_specified = month is not None
+        month_number = None
         if month is not None:
-            parsed_month = self.parse_month(month)
-            if parsed_month is None:
+            month_number = self.parse_month(month)
+            if month_number is None:
                 return ParsedDateTime.invalid(
                     f"Invalid month: '{month}'. Use month name or number (1-12)."
                 )
 
-        # Parse year
-        year_was_specified = year is not None
-        parsed_year = year if year is not None else now.year
-
-        # Determine final date based on what was specified
-        if month_was_specified and parsed_day is not None:
-            assert parsed_month is not None
-            # Both month and day specified - validate the combination
-            if parsed_day > days_in_month(parsed_year, parsed_month):
-                month_name = calendar.month_name[parsed_month]
+        if is_day_name and day_number is not None:
+            # A day name picks the next such weekday, so any year or month given is not used
+            found = self._next_weekday(day_number, hour, minute)
+        elif year is not None:
+            found_month = month_number or 1
+            found_day = day_number or 1
+            if found_day > days_in_month(year, found_month):
                 return ParsedDateTime.invalid(
-                    f"Invalid date: {month_name} doesn't have {parsed_day} days."
+                    f"Invalid date: {calendar.month_name[found_month]} {year} "
+                    f"doesn't have {found_day} days."
                 )
-            # Check if date is in the past, bump year if needed
-            if not year_was_specified:
-                target = datetime(parsed_year, parsed_month, parsed_day, hours, minutes or 0)
-                target = self.timezone.localize(target)
-                if target <= now:
-                    parsed_year += 1
-                    # Re-validate for leap year edge case (Feb 29)
-                    if parsed_day > days_in_month(parsed_year, parsed_month):
-                        month_name = calendar.month_name[parsed_month]
-                        return ParsedDateTime.invalid(
-                            f"Invalid date: {month_name} {parsed_year} doesn't have {parsed_day} days."
-                        )
-
-        elif month_was_specified and parsed_day is None:
-            assert parsed_month is not None
-            # Only month specified - use 1st of that month, next occurrence
-            parsed_day = 1
-            if not year_was_specified and parsed_month <= now.month:
-                parsed_year += 1
-
-        elif not month_was_specified and parsed_day is not None:
-            # Only day specified - find next month with that day
-            # Start from current month if day hasn't passed, otherwise next month
-            start_month = now.month
-            start_year = now.year
-            if parsed_day <= now.day:
-                start_month += 1
-                if start_month > 12:
-                    start_month = 1
-                    start_year += 1
-            parsed_year, parsed_month = self._find_next_month_with_day(
-                parsed_day, start_year, start_month
-            )
-
-        elif year_was_specified and not month_was_specified and parsed_day is None:
-            # Only year specified - use January 1st of that year
-            parsed_month = 1
-            parsed_day = 1
-
+            found = date(year, found_month, found_day)
+        elif month_number is not None:
+            found_day = day_number or 1
+            # February 29 exists in leap years, so only reject days no year has
+            if found_day > days_in_month(2000, month_number):
+                return ParsedDateTime.invalid(
+                    f"Invalid date: {calendar.month_name[month_number]} "
+                    f"doesn't have {found_day} days."
+                )
+            found = self._next_date(month_number, found_day, hour, minute)
+        elif day_number is not None:
+            found = self._next_date(None, day_number, hour, minute)
         else:
-            # Nothing specified - use current date
-            parsed_year = now.year
-            parsed_month = now.month
-            parsed_day = now.day
+            found = self._next_day_at(self.now.date(), hour, minute)
 
-        assert parsed_month is not None and parsed_day is not None
+        return ParsedDateTime(found.year, found.month, found.day, hour, minute)
 
-        # Final time-based adjustment: if only time specified and it's passed, use tomorrow
-        if not month_was_specified and day is None and time is not None:
-            target = datetime(parsed_year, parsed_month, parsed_day, hours, minutes or 0)
-            target = self.timezone.localize(target)
-            if target <= now:
-                tomorrow = now + timedelta(days=1)
-                parsed_year = tomorrow.year
-                parsed_month = tomorrow.month
-                parsed_day = tomorrow.day
-
-        return ParsedDateTime(
-            year=parsed_year,
-            month=parsed_month,
-            day=parsed_day,
-            hour=hours,
-            minute=minutes or 0,
+    def _is_ahead(self, day: date, hour: int, minute: int) -> bool:
+        """Return True if the given day and time are still to come in this timezone."""
+        local: datetime = self.timezone.localize(
+            datetime(day.year, day.month, day.day, hour, minute)
         )
+        return local > self.now
+
+    def _next_day_at(self, start: date, hour: int, minute: int, step: int = 1) -> date:
+        """Return `start` if the time is still to come that day, otherwise `step` days later."""
+        return start if self._is_ahead(start, hour, minute) else start + timedelta(days=step)
+
+    def _next_weekday(self, weekday: int, hour: int, minute: int) -> date:
+        """Return the next day with this weekday (Monday is 0) whose time is still to come."""
+        today = self.now.date()
+        candidate = today + timedelta(days=(weekday - today.weekday()) % 7)
+        return self._next_day_at(candidate, hour, minute, step=7)
+
+    def _next_date(self, month: int | None, day: int, hour: int, minute: int) -> date:
+        """Return the next date with this day (and month, if given) whose time is still to come."""
+        now = self.now
+        months = islice(_months_from(now.year, now.month), MAX_MONTHS_AHEAD + 1)
+        for year, candidate_month in months:
+            if month is not None and candidate_month != month:
+                continue
+            if day > days_in_month(year, candidate_month):
+                continue
+            candidate = date(year, candidate_month, day)
+            if self._is_ahead(candidate, hour, minute):
+                return candidate
+        # parse() only asks for dates that exist, so this is not reached
+        raise ValueError(f"No upcoming date has day {day} in month {month}")
 
     def to_utc_timestamp(self, parsed: ParsedDateTime) -> int | None:
         """Convert parsed datetime to UTC Unix timestamp."""

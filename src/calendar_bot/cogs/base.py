@@ -5,15 +5,21 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-import discord
 from discord.ext import commands
 
 if TYPE_CHECKING:
+    import discord
+
     from calendar_bot.bot import CalendarBot
     from calendar_bot.database import DatabaseRepository
 
 # Sentinel to distinguish "not passed" from "explicitly None"
 _UNSET: Any = object()
+
+
+def plural(count: int, word: str) -> str:
+    """Return the count with the word, adding an "s" unless the count is 1."""
+    return f"{count} {word}{'' if count == 1 else 's'}"
 
 
 class BaseCog(commands.Cog):
@@ -27,6 +33,14 @@ class BaseCog(commands.Cog):
     def db(self) -> DatabaseRepository:
         return self.bot.db
 
+    async def is_private(self, user_id: int) -> bool:
+        """Whether the user's responses are private. Users who have not chosen are private.
+
+        This only reads the setting, so running a command does not store anything.
+        """
+        user = await self.db.get_user(user_id)
+        return user.is_private if user else True
+
     async def send_response(
         self,
         interaction: discord.Interaction,
@@ -37,10 +51,9 @@ class BaseCog(commands.Cog):
         force_ephemeral: bool = False,
     ) -> None:
         """Send response, respecting user's privacy setting."""
-        user = await self.db.get_or_create_user(interaction.user.id)
-        ephemeral = force_ephemeral or user.is_private
+        ephemeral = force_ephemeral or await self.is_private(interaction.user.id)
 
-        # Build kwargs, only include view if it's not None
+        # Only pass the parts that were given
         kwargs: dict = {"ephemeral": ephemeral}
         if content is not None:
             kwargs["content"] = content
@@ -75,5 +88,4 @@ class BaseCog(commands.Cog):
 
     async def defer_response(self, interaction: discord.Interaction) -> None:
         """Defer response, respecting user's privacy setting."""
-        user = await self.db.get_or_create_user(interaction.user.id)
-        await interaction.response.defer(ephemeral=user.is_private)
+        await interaction.response.defer(ephemeral=await self.is_private(interaction.user.id))
