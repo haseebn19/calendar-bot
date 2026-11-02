@@ -4,112 +4,53 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
 
 from calendar_bot.config import Config, setup_logging
 
-
-class TestConfig:
-    def test_config_creation(self) -> None:
-        config = Config(
-            discord_token="test_token",
-            database_path=Path("./test.db"),
-            log_level="DEBUG",
-        )
-
-        assert config.discord_token == "test_token"
-        assert config.database_path == Path("./test.db")
-        assert config.log_level == "DEBUG"
-
-    def test_config_defaults(self) -> None:
-        config = Config(
-            discord_token="test_token",
-            database_path=Path("./test.db"),
-        )
-
-        assert config.log_level == "INFO"
-
-    def test_config_immutable(self) -> None:
-        config = Config(
-            discord_token="test_token",
-            database_path=Path("./test.db"),
-        )
-
-        with pytest.raises(AttributeError):
-            config.discord_token = "new_token"
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
-class TestConfigFromEnv:
-    """Tests for Config.from_env that need to mock load_dotenv."""
-
-    def test_from_env_with_all_vars(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        # Mock load_dotenv to prevent it from loading .env file
-        with patch("calendar_bot.config.load_dotenv"):
-            monkeypatch.setenv("DISCORD_TOKEN", "my_secret_token")
-            monkeypatch.setenv("DATABASE_PATH", "./custom/path.db")
-            monkeypatch.setenv("LOG_LEVEL", "debug")
-
-            config = Config.from_env()
-
-        assert config.discord_token == "my_secret_token"
-        assert config.database_path == Path("./custom/path.db")
-        assert config.log_level == "DEBUG"
-
-    def test_from_env_missing_token_raises(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        with patch("calendar_bot.config.load_dotenv"):
-            monkeypatch.delenv("DISCORD_TOKEN", raising=False)
-            monkeypatch.delenv("DATABASE_PATH", raising=False)
-            monkeypatch.delenv("LOG_LEVEL", raising=False)
-
-            with pytest.raises(ValueError, match="DISCORD_TOKEN"):
-                Config.from_env()
-
-    def test_from_env_defaults(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        with patch("calendar_bot.config.load_dotenv"):
-            monkeypatch.setenv("DISCORD_TOKEN", "token")
-            monkeypatch.delenv("DATABASE_PATH", raising=False)
-            monkeypatch.delenv("LOG_LEVEL", raising=False)
-
-            config = Config.from_env()
-
-        assert config.database_path == Path("./data/calendar.db")
-        assert config.log_level == "INFO"
-
-    def test_from_env_lowercase_log_level(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        with patch("calendar_bot.config.load_dotenv"):
-            monkeypatch.setenv("DISCORD_TOKEN", "token")
-            monkeypatch.setenv("LOG_LEVEL", "warning")
-
-            config = Config.from_env()
-
-        assert config.log_level == "WARNING"
+@pytest.fixture
+def env(monkeypatch: pytest.MonkeyPatch) -> Iterator[pytest.MonkeyPatch]:
+    """The environment, with no .env file loaded and none of the bot's settings set."""
+    for name in ("DISCORD_TOKEN", "DATABASE_PATH", "LOG_LEVEL"):
+        monkeypatch.delenv(name, raising=False)
+    with patch("calendar_bot.config.load_dotenv"):
+        yield monkeypatch
 
 
-class TestSetupLogging:
-    def test_setup_logging_returns_logger(self) -> None:
-        config = Config(
-            discord_token="test",
-            database_path=Path("./test.db"),
-            log_level="INFO",
-        )
+def test_reads_every_setting(env: pytest.MonkeyPatch) -> None:
+    env.setenv("DISCORD_TOKEN", "my_secret_token")
+    env.setenv("DATABASE_PATH", "./custom/path.db")
+    env.setenv("LOG_LEVEL", "debug")
 
-        logger = setup_logging(config)
+    assert Config.from_env() == Config("my_secret_token", Path("./custom/path.db"), "DEBUG")
 
-        assert isinstance(logger, logging.Logger)
-        assert logger.name == "calendar_bot"
 
-    def test_discord_loggers_reduced(self) -> None:
-        config = Config(
-            discord_token="test",
-            database_path=Path("./test.db"),
-        )
+def test_defaults(env: pytest.MonkeyPatch) -> None:
+    env.setenv("DISCORD_TOKEN", "token")
+    assert Config.from_env() == Config("token", Path("./data/calendar.db"), "INFO")
 
-        setup_logging(config)
 
-        discord_logger = logging.getLogger("discord")
-        http_logger = logging.getLogger("discord.http")
+@pytest.mark.usefixtures("env")
+def test_token_is_required() -> None:
+    with pytest.raises(ValueError, match="DISCORD_TOKEN"):
+        Config.from_env()
 
-        assert discord_logger.level == logging.WARNING
-        assert http_logger.level == logging.WARNING
+
+def test_log_level_must_be_a_logging_level(env: pytest.MonkeyPatch) -> None:
+    env.setenv("DISCORD_TOKEN", "token")
+    env.setenv("LOG_LEVEL", "verbose")
+    with pytest.raises(ValueError, match="LOG_LEVEL"):
+        Config.from_env()
+
+
+def test_setup_logging_quiets_discord() -> None:
+    setup_logging(Config("token", Path("./test.db")))
+    assert logging.getLogger("discord").level == logging.WARNING
+    assert logging.getLogger("discord.http").getEffectiveLevel() == logging.WARNING

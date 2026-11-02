@@ -10,6 +10,8 @@ from typing import Self
 
 from dotenv import load_dotenv
 
+LOG_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
+
 
 @dataclass(frozen=True, slots=True)
 class Config:
@@ -21,7 +23,7 @@ class Config:
 
     @classmethod
     def from_env(cls, env_path: Path | None = None) -> Self:
-        """Load configuration from environment variables."""
+        """Read the configuration from the environment and the `.env` file."""
         load_dotenv(env_path)
 
         discord_token = os.getenv("DISCORD_TOKEN")
@@ -30,6 +32,8 @@ class Config:
 
         database_path = Path(os.getenv("DATABASE_PATH", "./data/calendar.db"))
         log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+        if log_level not in LOG_LEVELS:
+            raise ValueError(f"LOG_LEVEL must be one of: {', '.join(LOG_LEVELS)}")
 
         return cls(
             discord_token=discord_token,
@@ -38,16 +42,11 @@ class Config:
         )
 
 
-def setup_logging(config: Config) -> logging.Logger:
-    """Configure logging for the application."""
+def setup_logging(config: Config) -> None:
     logging.basicConfig(
         level=getattr(logging, config.log_level),
         format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
-
-    # Reduce discord.py noise
+    # discord.py logs every gateway event at INFO
     logging.getLogger("discord").setLevel(logging.WARNING)
-    logging.getLogger("discord.http").setLevel(logging.WARNING)
-
-    return logging.getLogger("calendar_bot")
